@@ -1,0 +1,36 @@
+# Python Development Rules
+
+## Virtual Environment Requirements
+- ALWAYS use python3 instead of python
+- ALWAYS use pip3 instead of pip
+- ALWAYS work within a Python virtual environment (venv)
+- If no virtual environment exists, create one first using: python3 -m venv venv
+- ALWAYS activate the virtual environment before any Python operations: source venv/bin/activate (on macOS/Linux) or venv\Scripts\activate (on Windows)
+
+## Package Management
+- Install packages using: pip3 install <package_name>
+- Generate requirements using: pip3 freeze > requirements.txt
+- Install from requirements using: pip3 install -r requirements.txt
+- Never install packages globally - only within the activated virtual environment
+
+## Python Execution
+- Run Python scripts using: python3 script_name.py
+- Use python3 for all Python commands and scripts
+- Ensure virtual environment is activated before running any Python code
+
+## Project Setup
+- When setting up a new Python project:
+  1. Create virtual environment: python3 -m venv venv
+  2. Activate environment: source venv/bin/activate
+  3. Install required packages: pip3 install -r requirements.txt (if exists)
+  4. Run the project: python3 main.py
+
+## Terminal Commands
+- Always check if virtual environment is active (look for (venv) in prompt)
+- If not active, remind to activate with: source venv/bin/activate
+- Use python3 and pip3 in all command suggestions and examples
+
+## Error Handling
+- If import errors occur, first check if virtual environment is activated
+- If packages are missing, install them using pip3 within the active venv
+- Never suggest using sudo with pip installations 
