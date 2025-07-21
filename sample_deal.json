@@ -1,0 +1,60 @@
+{
+  "id": "deal-001",
+  "name": "123 Oak Street Investment Property",
+  "property": {
+    "address": "123 Oak Street, Denver, CO",
+    "type": "single_family",
+    "purchase_price": 275000,
+    "closing_costs": 6875,
+    "rehab_budget": 18000,
+    "units": 1,
+    "bedrooms": 3,
+    "bathrooms": 2,
+    "square_footage": 1800,
+    "year_built": 1985
+  },
+  "financing": {
+    "type": "conventional",
+    "cash_purchase": false,
+    "down_payment_percent": 20,
+    "interest_rate": 7.25,
+    "loan_term": 30,
+    "points": 1.0
+  },
+  "income": {
+    "monthly_rent": 2400,
+    "vacancy_rate": 6,
+    "credit_loss": 1,
+    "annual_increase": 2.5,
+    "other_income": [
+      {
+        "type": "parking",
+        "amount": 100,
+        "description": "Garage parking",
+        "per_unit": false
+      },
+      {
+        "type": "laundry",
+        "amount": 50,
+        "description": "Coin laundry",
+        "per_unit": false
+      }
+    ]
+  },
+  "expenses": {
+    "property_tax": 3850,
+    "insurance": 1320,
+    "hoa": 75,
+    "utilities": 125,
+    "maintenance_percent": 8,
+    "management_percent": 9,
+    "capex_percent": 5,
+    "annual_increase": 2.8
+  },
+  "market": {
+    "appreciation": 3.2,
+    "sales_expense": 7,
+    "inflation": 2.5
+  },
+  "holding_period": 10
+} 
