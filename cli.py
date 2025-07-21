@@ -286,8 +286,10 @@ def display_metrics(metrics):
     # Add rows
     for metric in metrics.get_all_metrics():
         rating = metric.performance_rating if metric.performance_rating != "Unknown" else "-"
+        # Handle both enum and string types
+        metric_name = metric.metric_type.value if hasattr(metric.metric_type, 'value') else metric.metric_type
         table.add_row(
-            metric.metric_type.value.replace('_', ' ').title(),
+            metric_name.replace('_', ' ').title(),
             metric.formatted_value,
             rating
         )
@@ -304,17 +306,17 @@ def display_quick_analysis(deal: Deal):
     
     # Key numbers
     console.print(f"Purchase Price: {format_currency(deal.property.purchase_price)}")
-    console.print(f"Total Investment: {format_currency(deal.total_cash_needed)}")
+    console.print(f"Total Investment: {format_currency(deal.get_total_cash_needed())}")
     console.print(f"Monthly Rent: {format_currency(deal.income.monthly_rent_per_unit * deal.property.num_units)}")
     console.print()
     
     # Year 1 metrics
     console.print("[bold]Year 1 Projections:[/bold]")
-    console.print(f"  NOI: {format_currency(deal.year_1_noi)}")
-    console.print(f"  Cash Flow: {format_currency(deal.year_1_cash_flow)}")
-    console.print(f"  Cap Rate: {format_percentage(deal.cap_rate)}")
-    console.print(f"  Cash-on-Cash: {format_percentage(deal.cash_on_cash_return)}")
-    console.print(f"  DSCR: {deal.debt_service_coverage_ratio:.2f}x")
+    console.print(f"  NOI: {format_currency(deal.get_year_1_noi())}")
+    console.print(f"  Cash Flow: {format_currency(deal.get_year_1_cash_flow())}")
+    console.print(f"  Cap Rate: {format_percentage(deal.get_cap_rate())}")
+    console.print(f"  Cash-on-Cash: {format_percentage(deal.get_cash_on_cash_return())}")
+    console.print(f"  DSCR: {deal.get_debt_service_coverage_ratio():.2f}x")
 
 
 def display_proforma_summary(df, years):
@@ -394,15 +396,15 @@ def save_results(deal: Deal, metrics, output_path: str):
             'name': deal.deal_name,
             'address': deal.property.address,
             'purchase_price': deal.property.purchase_price,
-            'total_investment': deal.total_cash_needed
+            'total_investment': deal.get_total_cash_needed()
         },
         'metrics': metrics.to_dict(),
         'year_1': {
-            'noi': deal.year_1_noi,
-            'cash_flow': deal.year_1_cash_flow,
-            'cap_rate': deal.cap_rate,
-            'coc_return': deal.cash_on_cash_return,
-            'dscr': deal.debt_service_coverage_ratio
+            'noi': deal.get_year_1_noi(),
+            'cash_flow': deal.get_year_1_cash_flow(),
+            'cap_rate': deal.get_cap_rate(),
+            'coc_return': deal.get_cash_on_cash_return(),
+            'dscr': deal.get_debt_service_coverage_ratio()
         }
     }
     

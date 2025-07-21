@@ -112,15 +112,15 @@ class MetricsCalculator(Calculator):
         deal = self.deal
         
         # NOI
-        noi = deal.year_1_noi
+        noi = deal.get_year_1_noi()
         noi_metric = MetricResult.create_noi(noi)
         
         # Cap Rate
-        cap_rate = deal.cap_rate
+        cap_rate = deal.get_cap_rate()
         cap_rate_metric = MetricResult.create_cap_rate(cap_rate)
         
         # Cash Flow
-        cash_flow = deal.year_1_cash_flow
+        cash_flow = deal.get_year_1_cash_flow()
         cash_flow_metric = MetricResult(
             metric_type=MetricType.CASH_FLOW,
             value=cash_flow,
@@ -129,17 +129,17 @@ class MetricsCalculator(Calculator):
         )
         
         # Cash-on-Cash Return
-        coc = deal.cash_on_cash_return
+        coc = deal.get_cash_on_cash_return()
         coc_metric = MetricResult.create_coc_return(coc)
         
         # DSCR
-        dscr = deal.debt_service_coverage_ratio
+        dscr = deal.get_debt_service_coverage_ratio()
         if dscr == float('inf'):
             dscr = 999.99  # Cap at reasonable number for display
         dscr_metric = MetricResult.create_dscr(dscr)
         
         # GRM
-        grm = deal.gross_rent_multiplier
+        grm = deal.get_gross_rent_multiplier()
         grm_metric = MetricResult(
             metric_type=MetricType.GRM,
             value=grm,

@@ -4,7 +4,7 @@ from .property import Property, PropertyType
 from .financing import Financing, FinancingType
 from .expenses import OperatingExpenses, ExpenseCategory
 from .income import Income, IncomeSource
-from .deal import Deal, DealStatus
+from .deal import Deal, DealStatus, MarketAssumptions
 from .metrics import MetricResult, MetricType
 
 __all__ = [
@@ -18,6 +18,7 @@ __all__ = [
     "IncomeSource",
     "Deal",
     "DealStatus",
+    "MarketAssumptions",
     "MetricResult",
     "MetricType",
 ] 

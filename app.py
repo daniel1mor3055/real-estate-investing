@@ -411,7 +411,7 @@ def display_quick_results(deal, metrics):
     with col1:
         st.metric(
             "Total Investment",
-            format_currency(deal.total_cash_needed)
+            format_currency(deal.get_total_cash_needed())
         )
     
     with col2:

@@ -103,7 +103,7 @@ class ProFormaCalculator(Calculator):
         # Year 0 - Initial Investment
         year_0 = ProFormaYear(
             year=0,
-            pre_tax_cash_flow=-self.deal.total_cash_needed,
+            pre_tax_cash_flow=-self.deal.get_total_cash_needed(),
             property_value=self.deal.property.purchase_price,
             loan_balance=self.deal.financing.loan_amount,
             total_equity=self.deal.property.purchase_price - self.deal.financing.loan_amount,
@@ -131,7 +131,7 @@ class ProFormaCalculator(Calculator):
         
         proforma = ProForma(
             years=proforma_years,
-            initial_investment=self.deal.total_cash_needed
+            initial_investment=self.deal.get_total_cash_needed()
         )
         
         return CalculatorResult(

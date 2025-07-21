@@ -106,7 +106,7 @@ def run_analysis(deal: Deal, holding_period: int = 10):
     # Display deal summary
     print(f"\nProperty: {deal.property.address}")
     print(f"Purchase Price: {format_currency(deal.property.purchase_price)}")
-    print(f"Total Investment: {format_currency(deal.total_cash_needed)}")
+    print(f"Total Investment: {format_currency(deal.get_total_cash_needed())}")
     print(f"Financing: {format_currency(deal.financing.loan_amount)} @ {deal.financing.interest_rate}%")
     print("-" * 80)
     
