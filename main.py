@@ -333,3 +333,71 @@ class RealEstateDeal:
 
         plt.tight_layout(rect=[0, 0.03, 1, 0.95])
         plt.show()
+
+if __name__ == "__main__":
+    # Demo: Analyzing a realistic rental property investment
+    print("=" * 60)
+    print("REAL ESTATE INVESTMENT ANALYSIS DEMO")
+    print("=" * 60)
+    
+    # Create a deal with realistic parameters
+    deal = RealEstateDeal(
+        property_address="123 Oak Street, Denver, CO",
+        purchase_price=275000,           # $275k purchase price
+        closing_costs=6875,              # 2.5% of purchase price
+        rehab_budget=18000,              # $18k for renovations
+        is_cash_purchase=False,          # Financed purchase
+        down_payment_pct=20,             # 20% down payment
+        interest_rate=7.25,              # 7.25% interest rate
+        loan_term_years=30,              # 30-year mortgage
+        loan_points=1.0,                 # 1% loan points
+        gross_monthly_rent=2400,         # $2,400/month rent
+        other_monthly_income=150,        # $150 other income (laundry, parking)
+        vacancy_rate_pct=6,              # 6% vacancy rate
+        property_taxes_yearly=3850,      # $3,850 annual property taxes
+        property_insurance_yearly=1320,  # $1,320 annual insurance
+        hoa_monthly=75,                  # $75/month HOA fees
+        maintenance_pct_egi=8,           # 8% of EGI for maintenance
+        capex_pct_egi=5,                 # 5% of EGI for capital expenditures
+        mgmt_fee_pct_egi=9,              # 9% management fee
+        landlord_paid_utilities_monthly=125,  # $125/month utilities
+        income_growth_pct=2.5,           # 2.5% annual rent growth
+        expense_growth_pct=2.8,          # 2.8% annual expense growth
+        appreciation_pct=3.2,            # 3.2% annual appreciation
+        sales_expenses_pct=7             # 7% sales costs when selling
+    )
+    
+    print(f"Property: {deal.property_address}")
+    print(f"Purchase Price: ${deal.purchase_price:,}")
+    print(f"Total Cash Invested: ${deal.total_cash_invested:,}")
+    print(f"Loan Amount: ${deal.loan_amount:,}")
+    print("-" * 60)
+    
+    # Calculate key metrics for different holding periods
+    holding_periods = [5, 10, 15]
+    
+    for period in holding_periods:
+        print(f"\n{period}-YEAR ANALYSIS:")
+        print("-" * 30)
+        
+        metrics = deal.calculate_all_metrics(period)
+        
+        print(f"Year 1 Cap Rate: {metrics['cap_rate_y1']:.2%}")
+        print(f"Year 1 Cash-on-Cash Return: {metrics['coc_return_y1']:.2%}")
+        print(f"Average Debt Service Coverage Ratio: {metrics['average_dscr']:.2f}x")
+        print(f"{period}-Year IRR: {metrics['irr']:.2%}")
+        print(f"{period}-Year Equity Multiple: {metrics['equity_multiple']:.2f}x")
+        
+        # Get deal scores for different investor profiles
+        for profile in ['cash_flow', 'balanced', 'appreciation']:
+            score, _, _ = deal.get_deal_score(investor_profile=profile, holding_period=period)
+            print(f"Deal Score ({profile.title()}): {score:.1f}/100")
+    
+    print("\n" + "=" * 60)
+    print("GENERATING VISUALIZATIONS...")
+    print("=" * 60)
+    
+    # Generate visualizations for 10-year hold
+    deal.plot_visualizations(holding_period=10)
+    
+    print("\nAnalysis complete! Check the generated plots above.")

@@ -14,21 +14,25 @@
 - Never install packages globally - only within the activated virtual environment
 
 ## Python Execution
-- Run Python scripts using: python3 script_name.py
+- Run Python scripts using: venv/bin/python3 -m script_name (without .py extension)
+- Alternative: python3 script_name.py (but only after activating venv)
 - Use python3 for all Python commands and scripts
-- Ensure virtual environment is activated before running any Python code
+- Prefer direct venv execution over activating venv each time
 
 ## Project Setup
 - When setting up a new Python project:
   1. Create virtual environment: python3 -m venv venv
+  2. Install required packages: venv/bin/pip3 install -r requirements.txt (if exists)
+  3. Run the project: venv/bin/python3 -m main
+- Alternative approach (if preferred):
   2. Activate environment: source venv/bin/activate
-  3. Install required packages: pip3 install -r requirements.txt (if exists)
+  3. Install required packages: pip3 install -r requirements.txt
   4. Run the project: python3 main.py
 
 ## Terminal Commands
-- Always check if virtual environment is active (look for (venv) in prompt)
-- If not active, remind to activate with: source venv/bin/activate
+- Prefer using venv/bin/python3 and venv/bin/pip3 directly instead of activating
 - Use python3 and pip3 in all command suggestions and examples
+- If activation needed: source venv/bin/activate (look for (venv) in prompt)
 
 ## Error Handling
 - If import errors occur, first check if virtual environment is activated
