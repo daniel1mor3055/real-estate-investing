@@ -13,10 +13,12 @@ from src.models import (
     PropertyType,
     Financing,
     FinancingType,
-    Income,
-    IncomeSource,
+    SubLoan,
+    IsraeliMortgageTrack,
     OperatingExpenses,
     ExpenseCategory,
+    Income,
+    IncomeSource,
     Deal,
     DealStatus,
     MarketAssumptions,
@@ -206,35 +208,190 @@ def get_property_inputs():
 
 def get_financing_inputs():
     """Get financing input fields."""
+    st.subheader("Financing Configuration")
+
+    # Financing mode selection
+    financing_mode = st.radio(
+        "Financing Mode",
+        ["Simple Loan", "Israeli Mortgage Tracks", "Cash Purchase"],
+        help="Choose between simple single loan, Israeli multi-track mortgage, or all-cash purchase",
+    )
+
+    if financing_mode == "Cash Purchase":
+        return {
+            "mode": "cash",
+            "financing_type": "cash",
+            "is_cash": True,
+            "down_payment": 100,
+            "tracks": [],
+        }
+
+    elif financing_mode == "Simple Loan":
+        return get_simple_loan_inputs()
+
+    else:  # Israeli Mortgage Tracks
+        return get_israeli_mortgage_inputs()
+
+
+def get_simple_loan_inputs():
+    """Get simple single loan inputs."""
     col1, col2 = st.columns(2)
 
     with col1:
         financing_type = st.selectbox(
             "Financing Type",
-            [t.value for t in FinancingType],
+            [t.value for t in FinancingType if t != FinancingType.CASH],
             format_func=lambda x: x.replace("_", " ").title(),
         )
-        is_cash = st.checkbox("All Cash Purchase")
-        down_payment = st.slider("Down Payment %", 0, 100, 20, disabled=is_cash)
+        down_payment = st.slider("Down Payment %", 0, 100, 20)
 
     with col2:
         interest_rate = st.number_input(
-            "Interest Rate %", min_value=0.0, value=7.0, step=0.25, disabled=is_cash
+            "Interest Rate %", min_value=0.0, value=7.0, step=0.25
         )
-        loan_term = st.selectbox(
-            "Loan Term (years)", [15, 30], index=1, disabled=is_cash
-        )
-        points = st.number_input(
-            "Loan Points", min_value=0.0, value=0.0, step=0.5, disabled=is_cash
-        )
+        loan_term = st.selectbox("Loan Term (years)", [15, 30], index=1)
+        points = st.number_input("Loan Points", min_value=0.0, value=0.0, step=0.5)
 
     return {
+        "mode": "simple",
         "financing_type": financing_type,
-        "is_cash": is_cash,
+        "is_cash": False,
         "down_payment": down_payment,
         "interest_rate": interest_rate,
         "loan_term": loan_term,
         "points": points,
+        "tracks": [],
+    }
+
+
+def get_israeli_mortgage_inputs():
+    """Get Israeli mortgage track inputs with regulatory compliance."""
+    st.markdown("### Israeli Mortgage Tracks (מסלולים)")
+    st.info(
+        "Configure up to 3 mortgage tracks. Israeli regulations require at least 1/3 fixed-rate and max 2/3 prime rate."
+    )
+
+    # Down payment
+    down_payment = st.slider("Down Payment %", 0, 50, 20)
+
+    # Number of tracks
+    num_tracks = st.selectbox("Number of Tracks", [1, 2, 3], index=1)
+
+    tracks = []
+    total_percentage = 0
+
+    for i in range(num_tracks):
+        with st.container():
+            st.markdown('<div class="track-container">', unsafe_allow_html=True)
+            st.markdown(
+                '<div class="track-header">Track {}</div>'.format(i + 1),
+                unsafe_allow_html=True,
+            )
+
+            col1, col2, col3 = st.columns(3)
+
+            with col1:
+                track_name = st.text_input(
+                    "Track Name",
+                    value="Track {}".format(i + 1),
+                    key="track_name_{}".format(i),
+                )
+
+                track_type = st.selectbox(
+                    "Track Type",
+                    [t.value for t in IsraeliMortgageTrack],
+                    format_func=lambda x: {
+                        "fixed_unlinked": 'Fixed Unlinked (קל"צ)',
+                        "prime_rate": "Prime Rate (פריים)",
+                        "fixed_rate_linked": "Fixed-Rate Linked (צמוד)",
+                    }.get(x, x),
+                    key="track_type_{}".format(i),
+                )
+
+                percentage = st.slider(
+                    "Percentage of Loan",
+                    1,
+                    100,
+                    33 if i < 2 else max(1, 100 - total_percentage),
+                    key="track_percentage_{}".format(i),
+                )
+                total_percentage += percentage
+
+            with col2:
+                base_rate = st.number_input(
+                    "Base Interest Rate %",
+                    min_value=0.0,
+                    value=(
+                        4.5
+                        if track_type == "fixed_unlinked"
+                        else 3.8 if track_type == "fixed_rate_linked" else 4.0
+                    ),
+                    step=0.1,
+                    key="track_rate_{}".format(i),
+                )
+
+                loan_term = st.selectbox(
+                    "Term (years)",
+                    [15, 20, 25, 30],
+                    index=3,
+                    key="track_term_{}".format(i),
+                )
+
+            with col3:
+                # Track-specific parameters
+                bank_of_israel_rate = None
+                expected_cpi = None
+
+                if track_type == "prime_rate":
+                    bank_of_israel_rate = st.number_input(
+                        "Bank of Israel Rate %",
+                        min_value=0.0,
+                        value=3.25,
+                        step=0.25,
+                        help="Official BoI rate (Prime = BoI + 1.5%)",
+                        key="track_boi_{}".format(i),
+                    )
+                    effective_rate = bank_of_israel_rate + 1.5
+                    st.info("Effective Prime Rate: {:.2f}%".format(effective_rate))
+
+                elif track_type == "fixed_rate_linked":
+                    expected_cpi = st.number_input(
+                        "Expected CPI %",
+                        min_value=-2.0,
+                        max_value=10.0,
+                        value=2.5,
+                        step=0.1,
+                        help="Expected annual CPI for principal adjustment",
+                        key="track_cpi_{}".format(i),
+                    )
+                    st.info("Principal will be adjusted for CPI over time")
+
+                else:  # fixed_unlinked
+                    st.info("Most stable track - fixed rate and principal")
+
+            tracks.append(
+                {
+                    "name": track_name,
+                    "track_type": track_type,
+                    "percentage": percentage,
+                    "base_rate": base_rate,
+                    "loan_term": loan_term,
+                    "bank_of_israel_rate": bank_of_israel_rate,
+                    "expected_cpi": expected_cpi,
+                }
+            )
+
+            st.markdown("</div>", unsafe_allow_html=True)
+
+    # Regulatory compliance check
+    display_regulatory_compliance(tracks)
+
+    return {
+        "mode": "israeli",
+        "financing_type": "conventional",
+        "is_cash": False,
+        "down_payment": down_payment,
+        "tracks": tracks,
     }
 
 
@@ -324,6 +481,72 @@ def get_expenses_inputs():
     }
 
 
+def display_regulatory_compliance(tracks):
+    """Display Israeli mortgage regulatory compliance status."""
+    if not tracks:
+        return
+
+    total_percentage = sum(track["percentage"] for track in tracks)
+
+    # Calculate compliance ratios
+    fixed_rate_percentage = sum(
+        track["percentage"]
+        for track in tracks
+        if track["track_type"] in ["fixed_unlinked", "fixed_rate_linked"]
+    )
+    prime_rate_percentage = sum(
+        track["percentage"] for track in tracks if track["track_type"] == "prime_rate"
+    )
+
+    fixed_rate_ratio = (
+        fixed_rate_percentage / total_percentage if total_percentage > 0 else 0
+    )
+    prime_rate_ratio = (
+        prime_rate_percentage / total_percentage if total_percentage > 0 else 0
+    )
+
+    # Check compliance
+    fixed_compliant = fixed_rate_ratio >= 1 / 3
+    prime_compliant = prime_rate_ratio <= 2 / 3
+    percentage_compliant = abs(total_percentage - 100) <= 1  # Allow 1% tolerance
+
+    overall_compliant = fixed_compliant and prime_compliant and percentage_compliant
+
+    # Display status
+    status_class = "compliant" if overall_compliant else "non-compliant"
+    status_text = "✅ Compliant" if overall_compliant else "❌ Non-Compliant"
+
+    st.markdown(
+        '<div class="compliance-status {}">'.format(status_class),
+        unsafe_allow_html=True,
+    )
+    st.markdown("**Regulatory Compliance: {}**".format(status_text))
+
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric(
+            "Fixed Rate Tracks", "{:.1f}%".format(fixed_rate_ratio), "Required: ≥33.3%"
+        )
+    with col2:
+        st.metric(
+            "Prime Rate Track", "{:.1f}%".format(prime_rate_ratio), "Limit: ≤66.7%"
+        )
+    with col3:
+        st.metric("Total Allocation", "{}%".format(total_percentage), "Target: 100%")
+
+    # Warnings
+    if not fixed_compliant:
+        st.warning("⚠️ Fixed-rate tracks must be at least 33.3% of total mortgage")
+    if not prime_compliant:
+        st.warning("⚠️ Prime rate track cannot exceed 66.7% of total mortgage")
+    if not percentage_compliant:
+        st.warning(
+            "⚠️ Track percentages total {}% (should be 100%)".format(total_percentage)
+        )
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+
 def create_quick_deal(address, price, rent, units, down_payment, rate, term):
     """Create a deal object for quick analysis."""
     property = Property(
@@ -374,22 +597,60 @@ def create_detailed_deal(prop, fin, inc, exp):
         property_type=PropertyType(prop["property_type"]),
         purchase_price=prop["purchase_price"],
         closing_costs=prop["closing_costs"],
-        rehab_budget=prop["rehab_budget"],
+        rehab_budget=prop.get("rehab_budget", 0),
         num_units=prop["units"],
         bedrooms=prop["bedrooms"],
         bathrooms=prop["bathrooms"],
-        square_footage=prop["sqft"],
+        square_footage=prop.get("sqft", prop.get("square_feet", 0)),
         year_built=prop["year_built"],
     )
 
-    financing = Financing(
-        financing_type=FinancingType(fin["financing_type"]),
-        is_cash_purchase=fin["is_cash"],
-        down_payment_percent=fin["down_payment"],
-        interest_rate=fin["interest_rate"],
-        loan_term_years=fin["loan_term"],
-        loan_points=fin["points"],
-    )
+    # Create financing based on mode
+    if fin.get("mode") == "cash":
+        financing = Financing(
+            financing_type=FinancingType.CASH,
+            is_cash_purchase=True,
+            down_payment_percent=100,
+            interest_rate=0,
+            loan_term_years=30,
+            loan_points=0,
+        )
+    elif fin.get("mode") == "israeli" and fin.get("tracks"):
+        # Create Israeli mortgage with multiple tracks
+        sub_loans = []
+        purchase_price = property.purchase_price
+        loan_amount = purchase_price * (1 - fin["down_payment"] / 100)
+
+        for track_data in fin["tracks"]:
+            track_loan_amount = loan_amount * (track_data["percentage"] / 100)
+
+            # Create SubLoan based on track type
+            sub_loan = SubLoan(
+                name=track_data["name"],
+                track_type=IsraeliMortgageTrack(track_data["track_type"]),
+                loan_amount=track_loan_amount,
+                base_interest_rate=track_data["base_rate"],
+                loan_term_years=track_data["loan_term"],
+                bank_of_israel_rate=track_data.get("bank_of_israel_rate"),
+                expected_cpi=track_data.get("expected_cpi"),
+            )
+            sub_loans.append(sub_loan)
+
+        financing = Financing.create_israeli_mortgage(
+            financing_type=FinancingType(fin["financing_type"]),
+            down_payment_percent=fin["down_payment"],
+            mortgage_tracks=sub_loans,
+        )
+    else:
+        # Simple loan (backward compatibility)
+        financing = Financing(
+            financing_type=FinancingType(fin["financing_type"]),
+            is_cash_purchase=fin["is_cash"],
+            down_payment_percent=fin["down_payment"],
+            interest_rate=fin["interest_rate"],
+            loan_term_years=fin["loan_term"],
+            loan_points=fin["points"],
+        )
 
     income = Income(
         monthly_rent_per_unit=inc["monthly_rent"],
@@ -424,6 +685,8 @@ def create_detailed_deal(prop, fin, inc, exp):
         financing=financing,
         income=income,
         expenses=expenses,
+        market_assumptions=MarketAssumptions(),
+        deal_status=DealStatus.ANALYZING,
     )
 
 
@@ -774,7 +1037,7 @@ def display_sensitivity_analysis(deal):
         z = np.random.rand(10, 10) * 20 - 10  # Placeholder data
 
         fig = go.Figure(
-            data=go.Heatmap(
+            go.Heatmap(
                 x=x,
                 y=y,
                 z=z,
