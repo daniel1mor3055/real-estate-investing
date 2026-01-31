@@ -1,2 +1,0 @@
-# MCP Server dependencies (requires Python >= 3.10)
-mcp>=1.26.0
