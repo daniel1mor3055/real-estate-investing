@@ -1,0 +1,126 @@
+---
+name: write-ticket
+description: Generates concise, binary-verified engineering tickets for Obsidian vault. Use when the user asks to create a ticket, task, engineering ticket, todo item for Obsidian, or mentions writing tickets for the Real Estate Project.
+---
+
+# Obsidian Ticket Generator
+
+Generate engineering tickets optimized for Obsidian. Enforces brevity, binary acceptance criteria, and specific frontmatter.
+
+## Prerequisites
+
+**Before generating tickets**, check for Obsidian MCP server:
+
+1. List available MCP servers to confirm `obsidian` or similar MCP is available
+2. Read the Obsidian MCP tool descriptors to understand available operations (likely `create_note`, `write_note`, or similar)
+3. If MCP not available, inform user and output markdown content only
+
+## Output Rules (Strict)
+
+**Mode 1: MCP Available**
+- Use Obsidian MCP to create the note directly in the vault
+- Target path: `/Users/danielmo/Desktop/Daniel/Real Estate Project/`
+- Filename: `YYYY-MM-DD-short-slug.md`
+- Confirm creation with user
+
+**Mode 2: No MCP**
+- Output filename on first line
+- Output markdown content immediately after
+- No conversation, explanations, or commentary
+
+## Ticket Structure Requirements
+
+- **Conciseness**: Bullet points only, no paragraphs
+- **Binary Criteria**: All acceptance criteria must be pass/fail verifiable
+- **Date Format**: Use today's date in `YYYY-MM-DD` format
+- **Status**: Always start with `📝 To Do`
+- **Priority**: Infer from context or ask user (P0-Critical, P1-High, P2-Medium, P3-Low)
+
+## Template
+
+```markdown
+---
+created: {{YYYY-MM-DD}}
+status: 📝 To Do
+tags: [ticket, {{AREA}}]
+priority: {{PRIORITY}}
+---
+
+# {{TITLE}}
+
+## Context
+- **Goal**: {{ONE_SENTENCE_GOAL}}
+- **Why**: {{ONE_SENTENCE_JUSTIFICATION}}
+
+## Requirements
+- [ ] {{REQUIREMENT_1}}
+- [ ] {{REQUIREMENT_2}}
+- [ ] {{REQUIREMENT_N}}
+
+## Acceptance Criteria
+- [ ] {{VERIFIABLE_OUTCOME_1}}
+- [ ] {{VERIFIABLE_OUTCOME_2}}
+- [ ] {{VERIFIABLE_OUTCOME_N}}
+
+## Technical Notes (Optional)
+- {{IMPLEMENTATION_DETAIL_IF_NEEDED}}
+
+## Dependencies (Optional)
+- {{BLOCKING_TICKET_OR_RESOURCE}}
+```
+
+## Field Guidelines
+
+### Tags
+Common area tags:
+- `backend`, `frontend`, `database`, `api`, `infra`
+- `bug`, `feature`, `refactor`, `docs`, `test`
+- Add project-specific tags as needed
+
+### Priority Levels
+- **P0-Critical**: System down, data loss risk, security breach
+- **P1-High**: Major feature blocked, significant user impact
+- **P2-Medium**: Important but not urgent, planned work
+- **P3-Low**: Nice to have, optimization, polish
+
+### Acceptance Criteria Rules
+✅ **Good** (Binary/Verifiable):
+- "API endpoint returns 200 status for valid requests"
+- "Unit tests achieve 80% code coverage"
+- "Page loads in under 2 seconds"
+
+❌ **Bad** (Subjective/Vague):
+- "Code is clean"
+- "Performance is better"
+- "User experience is improved"
+
+## Workflow
+
+1. **Gather Information**
+   - Understand the task/feature/bug from user
+   - Identify area, priority, and dependencies
+   
+2. **Generate Ticket**
+   - Apply template with specific, concrete details
+   - Ensure all acceptance criteria are binary
+   - Keep requirements focused (3-7 items typical)
+
+3. **Create File**
+   - Use Obsidian MCP if available
+   - Otherwise output filename and content
+   - Filename format: `YYYY-MM-DD-short-descriptive-slug.md`
+
+4. **Confirm**
+   - Brief confirmation of creation
+   - No additional commentary
+
+## Examples
+
+See [examples.md](examples.md) for complete ticket examples.
+
+## Notes
+
+- Tickets are immutable once created (status changes via frontmatter only)
+- Keep each ticket focused on a single deliverable
+- Split large features into multiple tickets
+- Link related tickets in Dependencies section
