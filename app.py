@@ -155,6 +155,21 @@ def detailed_analysis_page():
         expenses_inputs = get_expenses_inputs()
 
     with tab5:
+        # Analysis parameters - available before running analysis
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            holding_period = st.selectbox(
+                "Holding Period (years)", [5, 10, 15, 20, 30], index=1
+            )
+        with col2:
+            investor_profile = st.selectbox(
+                "Investor Profile",
+                ["cash_flow", "balanced", "appreciation"],
+                format_func=lambda x: x.replace("_", " ").title(),
+            )
+        with col3:
+            show_details = st.checkbox("Show Detailed Breakdown", value=True)
+
         if st.button("Run Analysis", type="primary"):
             # Create deal
             deal = create_detailed_deal(
@@ -164,8 +179,8 @@ def detailed_analysis_page():
             # Store in session state
             st.session_state["current_deal"] = deal
 
-            # Run analysis
-            run_detailed_analysis(deal)
+            # Run analysis with selected parameters
+            run_detailed_analysis(deal, holding_period, investor_profile, show_details)
 
 
 def get_property_inputs():
@@ -757,24 +772,9 @@ def display_quick_results(deal, metrics):
     st.plotly_chart(fig, use_container_width=True)
 
 
-def run_detailed_analysis(deal):
+def run_detailed_analysis(deal, holding_period, investor_profile, show_details):
     """Run and display detailed analysis."""
     st.success("Analysis Complete!")
-
-    # Analysis parameters
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        holding_period = st.selectbox(
-            "Holding Period (years)", [5, 10, 15, 20, 30], index=1
-        )
-    with col2:
-        investor_profile = st.selectbox(
-            "Investor Profile",
-            ["cash_flow", "balanced", "appreciation"],
-            format_func=lambda x: x.replace("_", " ").title(),
-        )
-    with col3:
-        show_details = st.checkbox("Show Detailed Breakdown", value=True)
 
     # Calculate metrics
     metrics_calc = MetricsCalculator(deal)
