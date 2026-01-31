@@ -68,7 +68,6 @@ def main():
     page = st.sidebar.selectbox(
         "Navigation",
         [
-            "Quick Analysis",
             "Detailed Analysis",
             "Portfolio Comparison",
             "Market Research",
@@ -76,9 +75,7 @@ def main():
         ],
     )
 
-    if page == "Quick Analysis":
-        quick_analysis_page()
-    elif page == "Detailed Analysis":
+    if page == "Detailed Analysis":
         detailed_analysis_page()
     elif page == "Portfolio Comparison":
         portfolio_comparison_page()
@@ -86,51 +83,6 @@ def main():
         market_research_page()
     elif page == "Settings":
         settings_page()
-
-
-def quick_analysis_page():
-    """Quick analysis with minimal inputs."""
-    st.header("Quick Property Analysis")
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        st.subheader("Property Details")
-        address = st.text_input("Property Address", "123 Main St, City, State")
-        purchase_price = st.number_input(
-            "Purchase Price", min_value=0, value=300000, step=5000
-        )
-        monthly_rent = st.number_input("Monthly Rent", min_value=0, value=2500, step=50)
-        units = st.number_input("Number of Units", min_value=1, value=1)
-
-    with col2:
-        st.subheader("Financing")
-        down_payment = st.slider("Down Payment %", 0, 100, 20)
-        interest_rate = st.number_input(
-            "Interest Rate %", min_value=0.0, value=7.0, step=0.25
-        )
-        loan_term = st.selectbox("Loan Term", [15, 30], index=1)
-
-    if st.button("Analyze", type="primary"):
-        # Create deal with defaults
-        deal = create_quick_deal(
-            address,
-            purchase_price,
-            monthly_rent,
-            units,
-            down_payment,
-            interest_rate,
-            loan_term,
-        )
-
-        # Calculate metrics
-        metrics_calc = MetricsCalculator(deal)
-        metrics_result = metrics_calc.calculate()
-
-        if metrics_result.success:
-            display_quick_results(deal, metrics_result.data)
-        else:
-            st.error(f"Error: {metrics_result.errors}")
 
 
 def detailed_analysis_page():
@@ -562,49 +514,6 @@ def display_regulatory_compliance(tracks):
     st.markdown("</div>", unsafe_allow_html=True)
 
 
-def create_quick_deal(address, price, rent, units, down_payment, rate, term):
-    """Create a deal object for quick analysis."""
-    property = Property(
-        address=address,
-        property_type=PropertyType.SINGLE_FAMILY,
-        purchase_price=price,
-        closing_costs=price * 0.025,
-        num_units=units,
-        bedrooms=3,
-        bathrooms=2,
-    )
-
-    financing = Financing(
-        financing_type=FinancingType.CONVENTIONAL,
-        down_payment_percent=down_payment,
-        interest_rate=rate,
-        loan_term_years=term,
-    )
-
-    income = Income(
-        monthly_rent_per_unit=rent,
-        vacancy_rate_percent=5,
-        annual_rent_increase_percent=3,
-    )
-
-    expenses = OperatingExpenses(
-        property_tax_annual=price * 0.012,
-        insurance_annual=price * 0.004,
-        maintenance_percent=5,
-        property_management_percent=8,
-        capex_reserve_percent=5,
-    )
-
-    return Deal(
-        deal_id=f"quick-{datetime.now().timestamp()}",
-        deal_name=f"Quick Analysis - {address}",
-        property=property,
-        financing=financing,
-        income=income,
-        expenses=expenses,
-    )
-
-
 def create_detailed_deal(prop, fin, inc, exp):
     """Create a deal object from detailed inputs."""
     property = Property(
@@ -703,73 +612,6 @@ def create_detailed_deal(prop, fin, inc, exp):
         market_assumptions=MarketAssumptions(),
         deal_status=DealStatus.ANALYZING,
     )
-
-
-def display_quick_results(deal, metrics):
-    """Display quick analysis results."""
-    st.success("Analysis Complete!")
-
-    # Key metrics in columns
-    col1, col2, col3, col4 = st.columns(4)
-
-    with col1:
-        st.metric("Total Investment", format_currency(deal.get_total_cash_needed()))
-
-    with col2:
-        noi = metrics.noi_year1
-        st.metric("Year 1 NOI", noi.formatted_value, delta=f"{noi.performance_rating}")
-
-    with col3:
-        coc = metrics.coc_return
-        st.metric(
-            "Cash-on-Cash Return",
-            coc.formatted_value,
-            delta=f"{coc.performance_rating}",
-        )
-
-    with col4:
-        cap_rate = metrics.cap_rate
-        st.metric(
-            "Cap Rate", cap_rate.formatted_value, delta=f"{cap_rate.performance_rating}"
-        )
-
-    # Monthly cash flow breakdown
-    st.subheader("Monthly Cash Flow Analysis")
-
-    monthly_rent = deal.income.monthly_rent_per_unit * deal.property.num_units
-    monthly_expenses = (
-        deal.expenses.calculate_total_operating_expenses(
-            deal.income.calculate_effective_gross_income(deal.property.num_units),
-            deal.property.num_units,
-        )
-        / 12
-    )
-    monthly_debt = deal.financing.monthly_payment or 0
-    monthly_cash_flow = monthly_rent - monthly_expenses - monthly_debt
-
-    fig = go.Figure(
-        go.Waterfall(
-            name="Monthly",
-            orientation="v",
-            measure=["relative", "relative", "relative", "total"],
-            x=["Gross Rent", "Operating Expenses", "Debt Service", "Cash Flow"],
-            y=[monthly_rent, -monthly_expenses, -monthly_debt, monthly_cash_flow],
-            text=[
-                f"${v:,.0f}"
-                for v in [
-                    monthly_rent,
-                    monthly_expenses,
-                    monthly_debt,
-                    monthly_cash_flow,
-                ]
-            ],
-            textposition="outside",
-            connector={"line": {"color": "rgb(63, 63, 63)"}},
-        )
-    )
-
-    fig.update_layout(title="Monthly Cash Flow Waterfall", showlegend=False)
-    st.plotly_chart(fig, use_container_width=True)
 
 
 def run_detailed_analysis(deal, holding_period, investor_profile, show_details):

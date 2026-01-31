@@ -77,53 +77,6 @@ def analyze(config: str, output: Optional[str], holding_period: int, investor_pr
 
 
 @cli.command()
-@click.option('--address', prompt='Property address', help='Property address')
-@click.option('--price', prompt='Purchase price', type=float, help='Purchase price')
-@click.option('--rent', prompt='Monthly rent', type=float, help='Monthly rent per unit')
-@click.option('--units', default=1, help='Number of units')
-def quick(address: str, price: float, rent: float, units: int):
-    """Quick analysis with minimal inputs."""
-    logger.info("Running quick analysis")
-    
-    # Create deal with defaults
-    deal = Deal(
-        deal_id="quick-analysis",
-        deal_name=f"Quick Analysis - {address}",
-        property=Property(
-            address=address,
-            property_type=PropertyType.SINGLE_FAMILY,
-            purchase_price=price,
-            closing_costs=price * 0.025,  # 2.5% default
-            rehab_budget=0,
-            num_units=units,
-            bedrooms=3,  # Default
-            bathrooms=2  # Default
-        ),
-        financing=Financing(
-            financing_type=FinancingType.CONVENTIONAL,
-            down_payment_percent=20,
-            interest_rate=7.0,
-            loan_term_years=30
-        ),
-        income=Income(
-            monthly_rent_per_unit=rent,
-            vacancy_rate_percent=5,
-            annual_rent_increase_percent=3
-        ),
-        expenses=OperatingExpenses(
-            property_tax_annual=price * 0.012,  # 1.2% default
-            insurance_annual=price * 0.004,  # 0.4% default
-            maintenance_percent=5,
-            property_management_percent=8,
-            capex_reserve_percent=5
-        )
-    )
-    
-    # Calculate and display
-    display_quick_analysis(deal)
-
-
-@cli.command()
 @click.option('--config', '-c', type=click.Path(exists=True), help='JSON config file')
 @click.option('--years', '-y', default=30, help='Years to project')
 @click.option('--output', '-o', type=click.Path(), help='Output CSV file')
@@ -295,28 +248,6 @@ def display_metrics(metrics):
         )
     
     console.print(table)
-
-
-def display_quick_analysis(deal: Deal):
-    """Display quick analysis results."""
-    console.print(Panel.fit(
-        f"[bold]Quick Analysis: {deal.property.address}[/bold]",
-        box=box.DOUBLE
-    ))
-    
-    # Key numbers
-    console.print(f"Purchase Price: {format_currency(deal.property.purchase_price)}")
-    console.print(f"Total Investment: {format_currency(deal.get_total_cash_needed())}")
-    console.print(f"Monthly Rent: {format_currency(deal.income.monthly_rent_per_unit * deal.property.num_units)}")
-    console.print()
-    
-    # Year 1 metrics
-    console.print("[bold]Year 1 Projections:[/bold]")
-    console.print(f"  NOI: {format_currency(deal.get_year_1_noi())}")
-    console.print(f"  Cash Flow: {format_currency(deal.get_year_1_cash_flow())}")
-    console.print(f"  Cap Rate: {format_percentage(deal.get_cap_rate())}")
-    console.print(f"  Cash-on-Cash: {format_percentage(deal.get_cash_on_cash_return())}")
-    console.print(f"  DSCR: {deal.get_debt_service_coverage_ratio():.2f}x")
 
 
 def display_proforma_summary(df, years):

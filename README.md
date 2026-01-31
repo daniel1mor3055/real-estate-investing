@@ -92,11 +92,6 @@ python3 main.py
 
 ### Command-Line Interface
 
-#### Quick Analysis
-```bash
-python3 cli.py quick --address "123 Main St" --price 300000 --rent 2500
-```
-
 #### Detailed Analysis from Config
 ```bash
 python3 cli.py analyze -c sample_deal.json -p balanced -h 10
