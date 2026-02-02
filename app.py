@@ -7,6 +7,8 @@ import plotly.graph_objects as go
 import plotly.express as px
 from datetime import datetime
 import json
+import os
+from pathlib import Path
 
 from src.models import (
     Property,
@@ -59,6 +61,51 @@ st.markdown(
 )
 
 
+def load_configuration(config_name: str):
+    """Load a configuration file by name."""
+    if config_name == "None (Manual Input)":
+        return None
+    
+    # Map config names to file paths
+    config_files = {
+        "Itzhak Navon 21": "itzhak_navon_21.json",
+        "Sample Deal": "sample_deal.json",
+    }
+    
+    if config_name not in config_files:
+        return None
+    
+    config_path = Path(config_files[config_name])
+    
+    try:
+        if config_path.exists():
+            with open(config_path, 'r', encoding='utf-8') as f:
+                config_data = json.load(f)
+            return config_data
+        else:
+            st.error(f"Configuration file not found: {config_path}")
+            return None
+    except Exception as e:
+        st.error(f"Error loading configuration: {e}")
+        return None
+
+
+def get_config_value(config_dict, key_path, default=None):
+    """Get a value from nested config dictionary using dot notation."""
+    if config_dict is None:
+        return default
+    
+    keys = key_path.split('.')
+    value = config_dict
+    
+    try:
+        for key in keys:
+            value = value[key]
+        return value
+    except (KeyError, TypeError):
+        return default
+
+
 def main():
     """Main application entry point."""
     st.title("🏠 Real Estate Investment Analyzer")
@@ -88,6 +135,27 @@ def main():
 def detailed_analysis_page():
     """Detailed analysis with all inputs."""
     st.header("Detailed Property Analysis")
+    
+    # Configuration management
+    col1, col2, col3 = st.columns([2, 1, 1])
+    with col1:
+        config_file = st.selectbox(
+            "Load Configuration",
+            ["None (Manual Input)", "Itzhak Navon 21", "Sample Deal", "Custom..."],
+        )
+    with col2:
+        if st.button("Load Config"):
+            config_loaded = load_configuration(config_file)
+            if config_loaded:
+                st.session_state["loaded_config"] = config_loaded
+                st.success(f"Loaded configuration: {config_file}")
+                st.rerun()
+    with col3:
+        if st.button("Clear Config"):
+            if "loaded_config" in st.session_state:
+                del st.session_state["loaded_config"]
+                st.success("Configuration cleared")
+                st.rerun()
 
     # Use tabs for organization
     tab1, tab2, tab3, tab4, tab5 = st.tabs(
@@ -108,15 +176,28 @@ def detailed_analysis_page():
 
     with tab5:
         # Analysis parameters - available before running analysis
+        config = st.session_state.get("loaded_config")
+        
         col1, col2, col3 = st.columns(3)
         with col1:
+            holding_period_options = [5, 10, 15, 20, 30]
+            default_holding = get_config_value(config, "analysis_defaults.holding_period", 10)
+            holding_period_index = holding_period_options.index(default_holding) if default_holding in holding_period_options else 1
+            
             holding_period = st.selectbox(
-                "Holding Period (years)", [5, 10, 15, 20, 30], index=1
+                "Holding Period (years)", 
+                holding_period_options, 
+                index=holding_period_index
             )
         with col2:
+            investor_profiles = ["cash_flow", "balanced", "appreciation"]
+            default_profile = get_config_value(config, "analysis_defaults.investor_profile", "balanced")
+            profile_index = investor_profiles.index(default_profile) if default_profile in investor_profiles else 1
+            
             investor_profile = st.selectbox(
                 "Investor Profile",
-                ["cash_flow", "balanced", "appreciation"],
+                investor_profiles,
+                index=profile_index,
                 format_func=lambda x: x.replace("_", " ").title(),
             )
         with col3:
@@ -137,26 +218,69 @@ def detailed_analysis_page():
 
 def get_property_inputs():
     """Get property input fields."""
+    config = st.session_state.get("loaded_config")
+    
     col1, col2 = st.columns(2)
 
     with col1:
-        address = st.text_input("Address", "123 Investment Property Lane")
+        address = st.text_input(
+            "Address", 
+            get_config_value(config, "property.address", "123 Investment Property Lane")
+        )
+        property_type_default = get_config_value(config, "property.type", "single_family")
+        property_type_options = [t.value for t in PropertyType]
+        property_type_index = property_type_options.index(property_type_default) if property_type_default in property_type_options else 0
+        
         property_type = st.selectbox(
             "Property Type",
-            [t.value for t in PropertyType],
+            property_type_options,
+            index=property_type_index,
             format_func=lambda x: x.replace("_", " ").title(),
         )
-        purchase_price = st.number_input("Purchase Price", value=300000, step=5000)
-        closing_costs = st.number_input("Closing Costs", value=7500, step=500)
-        rehab_budget = st.number_input("Rehab Budget", value=15000, step=1000)
+        purchase_price = st.number_input(
+            "Purchase Price", 
+            value=get_config_value(config, "property.purchase_price", 300000), 
+            step=5000
+        )
+        closing_costs = st.number_input(
+            "Closing Costs", 
+            value=get_config_value(config, "property.closing_costs", 7500), 
+            step=500
+        )
+        rehab_budget = st.number_input(
+            "Rehab Budget", 
+            value=get_config_value(config, "property.rehab_budget", 15000), 
+            step=1000
+        )
 
     with col2:
-        units = st.number_input("Units", min_value=1, value=1)
-        bedrooms = st.number_input("Bedrooms", min_value=0, value=3)
-        bathrooms = st.number_input("Bathrooms", min_value=0.0, value=2.0, step=0.5)
-        sqft = st.number_input("Square Feet", min_value=0, value=1500, step=50)
+        units = st.number_input(
+            "Units", 
+            min_value=1, 
+            value=get_config_value(config, "property.units", 1)
+        )
+        bedrooms = st.number_input(
+            "Bedrooms", 
+            min_value=0, 
+            value=get_config_value(config, "property.bedrooms", 3)
+        )
+        bathrooms = st.number_input(
+            "Bathrooms", 
+            min_value=0.0, 
+            value=float(get_config_value(config, "property.bathrooms", 2.0)), 
+            step=0.5
+        )
+        sqft = st.number_input(
+            "Square Feet", 
+            min_value=0, 
+            value=get_config_value(config, "property.square_footage", 1500), 
+            step=50
+        )
         year_built = st.number_input(
-            "Year Built", min_value=1800, max_value=2024, value=1990
+            "Year Built", 
+            min_value=1800, 
+            max_value=2026, 
+            value=get_config_value(config, "property.year_built", 1990)
         )
 
     return {
@@ -180,8 +304,9 @@ def get_financing_inputs():
     # Financing mode selection
     financing_mode = st.radio(
         "Financing Mode",
-        ["Simple Loan", "Israeli Mortgage Tracks", "Cash Purchase"],
-        help="Choose between simple single loan, Israeli multi-track mortgage, or all-cash purchase",
+        ["Israeli Mortgage Tracks", "Simple Loan", "Cash Purchase"],
+        index=0,
+        help="Choose between Israeli multi-track mortgage, simple single loan, or all-cash purchase",
     )
 
     if financing_mode == "Cash Purchase":
@@ -237,17 +362,29 @@ def get_israeli_mortgage_inputs():
     st.info(
         "Configure up to 3 mortgage tracks. Israeli regulations require at least 1/3 fixed-rate and max 2/3 prime rate."
     )
+    
+    config = st.session_state.get("loaded_config")
+    config_tracks = get_config_value(config, "financing.israeli_mortgage_tracks", [])
 
     # Down payment
-    down_payment = st.slider("Down Payment %", 0, 50, 20)
+    down_payment = st.slider(
+        "Down Payment %", 
+        0, 
+        100, 
+        get_config_value(config, "financing.down_payment_percent", 20)
+    )
 
     # Number of tracks
-    num_tracks = st.selectbox("Number of Tracks", [1, 2, 3], index=1)
+    default_num_tracks = len(config_tracks) if config_tracks else 2
+    num_tracks = st.selectbox("Number of Tracks", [1, 2, 3], index=min(default_num_tracks - 1, 2))
 
     tracks = []
     total_percentage = 0
 
     for i in range(num_tracks):
+        # Get config for this track if available
+        track_config = config_tracks[i] if i < len(config_tracks) else {}
+        
         with st.container():
             st.markdown('<div class="track-container">', unsafe_allow_html=True)
             st.markdown(
@@ -260,13 +397,18 @@ def get_israeli_mortgage_inputs():
             with col1:
                 track_name = st.text_input(
                     "Track Name",
-                    value="Track {}".format(i + 1),
+                    value=track_config.get("name", "Track {}".format(i + 1)),
                     key="track_name_{}".format(i),
                 )
 
+                track_type_options = [t.value for t in IsraeliMortgageTrack]
+                track_type_default = track_config.get("track_type", "fixed_unlinked" if i == 0 else "prime_rate")
+                track_type_index = track_type_options.index(track_type_default) if track_type_default in track_type_options else 0
+                
                 track_type = st.selectbox(
                     "Track Type",
-                    [t.value for t in IsraeliMortgageTrack],
+                    track_type_options,
+                    index=track_type_index,
                     format_func=lambda x: {
                         "fixed_unlinked": 'Fixed Unlinked (קל"צ)',
                         "prime_rate": "Prime Rate (פריים)",
@@ -279,28 +421,33 @@ def get_israeli_mortgage_inputs():
                     "Percentage of Loan",
                     1,
                     100,
-                    33 if i < 2 else max(1, 100 - total_percentage),
+                    track_config.get("percentage", 33 if i < 2 else max(1, 100 - total_percentage)),
                     key="track_percentage_{}".format(i),
                 )
                 total_percentage += percentage
 
             with col2:
+                default_base_rate = track_config.get("base_rate", 
+                    4.5 if track_type == "fixed_unlinked"
+                    else 3.8 if track_type == "fixed_rate_linked" else 4.0
+                )
+                
                 base_rate = st.number_input(
                     "Base Interest Rate %",
                     min_value=0.0,
-                    value=(
-                        4.5
-                        if track_type == "fixed_unlinked"
-                        else 3.8 if track_type == "fixed_rate_linked" else 4.0
-                    ),
+                    value=float(default_base_rate),
                     step=0.1,
                     key="track_rate_{}".format(i),
                 )
 
+                loan_term_options = [3, 5, 10, 15, 20, 25, 26, 30]
+                default_term = track_config.get("loan_term", 30)
+                loan_term_index = loan_term_options.index(default_term) if default_term in loan_term_options else len(loan_term_options) - 1
+                
                 loan_term = st.selectbox(
                     "Term (years)",
-                    [15, 20, 25, 30],
-                    index=3,
+                    loan_term_options,
+                    index=loan_term_index,
                     key="track_term_{}".format(i),
                 )
 
@@ -310,23 +457,32 @@ def get_israeli_mortgage_inputs():
                 expected_cpi = None
 
                 if track_type == "prime_rate":
+                    default_boi_rate = track_config.get("bank_of_israel_rate", 3.25)
                     bank_of_israel_rate = st.number_input(
                         "Bank of Israel Rate %",
                         min_value=0.0,
-                        value=3.25,
+                        value=float(default_boi_rate),
                         step=0.25,
                         help="Official BoI rate (Prime = BoI + 1.5%)",
                         key="track_boi_{}".format(i),
                     )
-                    effective_rate = bank_of_israel_rate + 1.5
-                    st.info("Effective Prime Rate: {:.2f}%".format(effective_rate))
+                    # Calculate effective prime rate
+                    # Prime = BoI + 1.5%, then subtract any track discount
+                    prime_rate = bank_of_israel_rate + 1.5
+                    track_discount = track_config.get("track_discount", 0)
+                    effective_rate = prime_rate - track_discount
+                    
+                    st.info("Prime Rate: {:.2f}%".format(prime_rate))
+                    if track_discount > 0:
+                        st.info("After discount: {:.2f}%".format(effective_rate))
 
                 elif track_type == "fixed_rate_linked":
+                    default_cpi = track_config.get("expected_cpi", 2.5)
                     expected_cpi = st.number_input(
                         "Expected CPI %",
                         min_value=-2.0,
                         max_value=10.0,
-                        value=2.5,
+                        value=float(default_cpi),
                         step=0.1,
                         help="Expected annual CPI for principal adjustment",
                         key="track_cpi_{}".format(i),
@@ -365,15 +521,35 @@ def get_israeli_mortgage_inputs():
 def get_income_inputs():
     """Get income input fields."""
     st.subheader("Rental Income")
+    
+    config = st.session_state.get("loaded_config")
 
     col1, col2 = st.columns(2)
     with col1:
-        monthly_rent = st.number_input("Monthly Rent per Unit", value=2500, step=50)
-        vacancy_rate = st.slider("Vacancy Rate %", 0, 20, 5)
+        monthly_rent = st.number_input(
+            "Monthly Rent per Unit", 
+            value=get_config_value(config, "income.monthly_rent", 2500), 
+            step=50
+        )
+        vacancy_rate = st.slider(
+            "Vacancy Rate %", 
+            0, 
+            20, 
+            get_config_value(config, "income.vacancy_rate", 5)
+        )
 
     with col2:
-        credit_loss = st.slider("Credit Loss %", 0, 10, 1)
-        annual_increase = st.number_input("Annual Rent Increase %", value=3.0, step=0.5)
+        credit_loss = st.slider(
+            "Credit Loss %", 
+            0, 
+            10, 
+            get_config_value(config, "income.credit_loss", 1)
+        )
+        annual_increase = st.number_input(
+            "Annual Rent Increase %", 
+            value=float(get_config_value(config, "income.annual_increase", 3.0)), 
+            step=0.5
+        )
 
     st.subheader("Other Income")
 
@@ -412,29 +588,64 @@ def get_income_inputs():
 def get_expenses_inputs():
     """Get expense input fields."""
     st.subheader("Fixed Expenses")
+    
+    config = st.session_state.get("loaded_config")
 
     col1, col2 = st.columns(2)
     with col1:
-        property_tax = st.number_input("Annual Property Tax", value=3600, step=100)
-        insurance = st.number_input("Annual Insurance", value=1200, step=100)
+        property_tax = st.number_input(
+            "Annual Property Tax", 
+            value=get_config_value(config, "expenses.property_tax", 3600), 
+            step=100
+        )
+        insurance = st.number_input(
+            "Annual Insurance", 
+            value=get_config_value(config, "expenses.insurance", 1200), 
+            step=100
+        )
 
     with col2:
-        hoa = st.number_input("Monthly HOA", value=0, step=25)
+        hoa = st.number_input(
+            "Monthly HOA", 
+            value=get_config_value(config, "expenses.hoa", 0), 
+            step=25
+        )
         utilities = st.number_input(
-            "Monthly Utilities (Landlord Paid)", value=0, step=25
+            "Monthly Utilities (Landlord Paid)", 
+            value=get_config_value(config, "expenses.utilities", 0), 
+            step=25
         )
 
     st.subheader("Variable Expenses (% of Income)")
 
     col1, col2, col3 = st.columns(3)
     with col1:
-        maintenance = st.slider("Maintenance %", 0, 20, 5)
+        maintenance = st.slider(
+            "Maintenance %", 
+            0, 
+            20, 
+            get_config_value(config, "expenses.maintenance_percent", 5)
+        )
     with col2:
-        management = st.slider("Management %", 0, 15, 8)
+        management = st.slider(
+            "Management %", 
+            0, 
+            15, 
+            get_config_value(config, "expenses.management_percent", 8)
+        )
     with col3:
-        capex = st.slider("CapEx Reserve %", 0, 20, 5)
+        capex = st.slider(
+            "CapEx Reserve %", 
+            0, 
+            20, 
+            get_config_value(config, "expenses.capex_percent", 5)
+        )
 
-    annual_increase = st.number_input("Annual Expense Growth %", value=3.0, step=0.5)
+    annual_increase = st.number_input(
+        "Annual Expense Growth %", 
+        value=float(get_config_value(config, "expenses.annual_increase", 3.0)), 
+        step=0.5
+    )
 
     return {
         "property_tax": property_tax,
@@ -930,36 +1141,104 @@ def settings_page():
     st.header("Settings")
 
     st.subheader("Default Assumptions")
+    
+    # Load current config if available
+    config = st.session_state.get("loaded_config")
+    
+    # Display current configuration info if loaded
+    if config:
+        st.info(f"Current Configuration: {config.get('name', 'Unknown')}")
+        st.markdown(f"**Property:** {get_config_value(config, 'property.address', 'N/A')}")
 
     col1, col2 = st.columns(2)
 
     with col1:
         st.markdown("**Income Defaults**")
-        default_vacancy = st.number_input("Default Vacancy Rate %", value=5.0)
-        default_rent_growth = st.number_input("Default Rent Growth %", value=3.0)
+        default_vacancy = st.number_input(
+            "Default Vacancy Rate %", 
+            value=float(get_config_value(config, "analysis_defaults.default_vacancy_rate", 5.0))
+        )
+        default_rent_growth = st.number_input(
+            "Default Rent Growth %", 
+            value=float(get_config_value(config, "analysis_defaults.default_rent_growth", 3.0))
+        )
 
         st.markdown("**Expense Defaults**")
-        default_maintenance = st.number_input("Default Maintenance %", value=5.0)
-        default_management = st.number_input("Default Management %", value=8.0)
-        default_capex = st.number_input("Default CapEx %", value=5.0)
+        default_maintenance = st.number_input(
+            "Default Maintenance %", 
+            value=float(get_config_value(config, "analysis_defaults.default_maintenance", 5.0))
+        )
+        default_management = st.number_input(
+            "Default Management %", 
+            value=float(get_config_value(config, "analysis_defaults.default_management", 8.0))
+        )
+        default_capex = st.number_input(
+            "Default CapEx %", 
+            value=float(get_config_value(config, "expenses.capex_percent", 5.0))
+        )
 
     with col2:
         st.markdown("**Market Defaults**")
-        default_appreciation = st.number_input("Default Appreciation %", value=3.5)
-        default_inflation = st.number_input("Default Inflation %", value=2.5)
+        default_appreciation = st.number_input(
+            "Default Appreciation %", 
+            value=float(get_config_value(config, "analysis_defaults.default_appreciation", 3.5))
+        )
+        default_inflation = st.number_input(
+            "Default Inflation %", 
+            value=float(get_config_value(config, "market.inflation", 2.5))
+        )
 
         st.markdown("**Analysis Defaults**")
+        holding_options = [5, 10, 15, 20, 30]
+        default_holding_val = get_config_value(config, "analysis_defaults.holding_period", 10)
+        holding_index = holding_options.index(default_holding_val) if default_holding_val in holding_options else 1
+        
         default_holding = st.selectbox(
-            "Default Holding Period", [5, 10, 15, 20, 30], index=1
+            "Default Holding Period", 
+            holding_options, 
+            index=holding_index
         )
+        
+        profile_options = ["cash_flow", "balanced", "appreciation"]
+        default_profile_val = get_config_value(config, "analysis_defaults.investor_profile", "balanced")
+        profile_index = profile_options.index(default_profile_val) if default_profile_val in profile_options else 1
+        
         default_profile = st.selectbox(
             "Default Investor Profile",
-            ["cash_flow", "balanced", "appreciation"],
+            profile_options,
+            index=profile_index,
             format_func=lambda x: x.replace("_", " ").title(),
         )
 
-    if st.button("Save Settings"):
-        st.success("Settings saved successfully!")
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("Save Settings"):
+            # Update session state with new defaults
+            if "settings" not in st.session_state:
+                st.session_state["settings"] = {}
+            
+            st.session_state["settings"].update({
+                "default_vacancy": default_vacancy,
+                "default_rent_growth": default_rent_growth,
+                "default_maintenance": default_maintenance,
+                "default_management": default_management,
+                "default_capex": default_capex,
+                "default_appreciation": default_appreciation,
+                "default_inflation": default_inflation,
+                "default_holding": default_holding,
+                "default_profile": default_profile,
+            })
+            
+            st.success("Settings saved successfully!")
+    
+    with col2:
+        if st.button("Reset to Defaults"):
+            if "settings" in st.session_state:
+                del st.session_state["settings"]
+            if "loaded_config" in st.session_state:
+                del st.session_state["loaded_config"]
+            st.success("Settings reset to defaults!")
+            st.rerun()
 
 
 if __name__ == "__main__":
