@@ -124,3 +124,12 @@ See [examples.md](examples.md) for complete ticket examples.
 - Keep each ticket focused on a single deliverable
 - Split large features into multiple tickets
 - Link related tickets in Dependencies section
+
+## Completing Tickets
+
+**When a ticket mission is complete**, use the `done-ticket` skill to:
+- Update ticket status to ✅ Done
+- Add completion date
+- Move ticket to done/ directory
+
+This ensures proper archival and tracking of completed work in the Real Estate Project.
