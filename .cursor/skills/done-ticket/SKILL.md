@@ -11,16 +11,16 @@ Marks engineering tickets as complete and archives them to the done directory. U
 
 **Before marking tickets done**, check for Obsidian MCP server:
 
-1. List available MCP servers to confirm `obsidian` or similar MCP is available
-2. Read the Obsidian MCP tool descriptors to understand available operations (likely `read_note`, `write_note`, `move_note`, or similar)
+1. List available MCP servers to confirm `user-obsidian-tickets` MCP is available
+2. The server provides: `read_ticket`, `update_ticket`, `move_ticket` tools
 3. If MCP not available, inform user and provide instructions only
 
 ## Output Rules (Strict)
 
 **Mode 1: MCP Available**
-- Read the current ticket content from `/Users/danielmo/Desktop/Daniel/Real Estate Project/`
-- Update frontmatter: set status to `✅ Done` and add `completed: YYYY-MM-DD`
-- Move ticket to `/Users/danielmo/Desktop/Daniel/Real Estate Project/done/`
+- Use `read_ticket` to read the current ticket from `/Users/danielmo/Desktop/Daniel/Real Estate Project/`
+- Use `update_ticket` to set status to `done` and add completion notes
+- Use `move_ticket` to move ticket to `/Users/danielmo/Desktop/Daniel/Real Estate Project/done/`
 - Preserve original filename
 - Confirm completion with user
 
@@ -44,18 +44,19 @@ Marks engineering tickets as complete and archives them to the done directory. U
    - If not specified, list recent tickets and ask user to confirm
 
 2. **Read Current Ticket**
-   - Use Obsidian MCP to read the ticket
+   - Use `read_ticket` MCP tool to read the ticket
    - Verify it exists and is in To Do/In Progress state
 
-3. **Update Frontmatter**
-   - Change `status: 📝 To Do` or `status: 🔄 In Progress` to `status: ✅ Done`
-   - Add `completed: {{TODAY_YYYY-MM-DD}}` field
-   - Preserve all other frontmatter fields
+3. **Update Status**
+   - Use `update_ticket` MCP tool with `status: "done"`
+   - Add completion notes using the `notes` parameter
+   - Example: `update_ticket(filename="TICKET-XXX.md", status="done", notes="Completed [description]")`
 
 4. **Move to Done**
-   - Move ticket to `done/` subdirectory
-   - Ensure done directory exists (create if needed)
-   - Keep original filename
+   - Use `move_ticket` MCP tool to move ticket to `done/` subdirectory
+   - Example: `move_ticket(filename="TICKET-XXX.md")`
+   - The tool automatically creates the done directory if needed
+   - Keeps original filename
 
 5. **Confirm**
    - Brief confirmation: "Ticket {{FILENAME}} marked as done and moved to done/"
