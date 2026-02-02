@@ -304,8 +304,9 @@ def get_financing_inputs():
     # Financing mode selection
     financing_mode = st.radio(
         "Financing Mode",
-        ["Simple Loan", "Israeli Mortgage Tracks", "Cash Purchase"],
-        help="Choose between simple single loan, Israeli multi-track mortgage, or all-cash purchase",
+        ["Israeli Mortgage Tracks", "Simple Loan", "Cash Purchase"],
+        index=0,
+        help="Choose between Israeli multi-track mortgage, simple single loan, or all-cash purchase",
     )
 
     if financing_mode == "Cash Purchase":
