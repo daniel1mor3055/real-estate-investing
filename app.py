@@ -47,14 +47,84 @@ st.markdown(
     """
 <style>
     .metric-card {
-        background-color: #f0f2f6;
         padding: 20px;
         border-radius: 10px;
         margin: 10px 0;
+        border: 2px solid #e0e0e0;
     }
-    .good { color: #28a745; }
-    .fair { color: #ffc107; }
-    .poor { color: #dc3545; }
+    .metric-card h4 {
+        margin-top: 0;
+        font-size: 14px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .metric-card h2 {
+        margin: 10px 0;
+        font-size: 32px;
+        font-weight: bold;
+    }
+    .metric-card p {
+        margin-bottom: 0;
+        font-size: 12px;
+        font-weight: 500;
+    }
+    
+    /* Performance-based backgrounds */
+    .metric-card.excellent {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        border-color: #059669;
+        color: white;
+    }
+    .metric-card.excellent h4,
+    .metric-card.excellent h2,
+    .metric-card.excellent p {
+        color: white;
+    }
+    
+    .metric-card.good {
+        background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+        border-color: #10b981;
+        color: white;
+    }
+    .metric-card.good h4,
+    .metric-card.good h2,
+    .metric-card.good p {
+        color: white;
+    }
+    
+    .metric-card.fair {
+        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+        border-color: #f59e0b;
+        color: #78350f;
+    }
+    .metric-card.fair h4,
+    .metric-card.fair h2,
+    .metric-card.fair p {
+        color: #78350f;
+    }
+    
+    .metric-card.poor {
+        background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+        border-color: #dc2626;
+        color: white;
+    }
+    .metric-card.poor h4,
+    .metric-card.poor h2,
+    .metric-card.poor p {
+        color: white;
+    }
+    
+    .metric-card.unknown {
+        background-color: #f0f2f6;
+        border-color: #d1d5db;
+        color: #374151;
+    }
+    .metric-card.unknown h4,
+    .metric-card.unknown h2,
+    .metric-card.unknown p {
+        color: #374151;
+    }
 </style>
 """,
     unsafe_allow_html=True,
@@ -881,36 +951,67 @@ def display_metrics_overview(deal, metrics):
 
     # Key metrics grid
     st.subheader("Key Performance Indicators")
+    
+    # Define performance rating order for sorting (best to worst)
+    rating_order = {'excellent': 0, 'good': 1, 'fair': 2, 'poor': 3, 'unknown': 4}
+    
+    # Organize metrics by category and sort by performance
+    profitability_metrics = sorted(
+        [metrics.noi_year1, metrics.cap_rate, metrics.cash_flow_year1],
+        key=lambda m: rating_order.get(m.performance_rating.lower(), 4)
+    )
+    
+    return_metrics = sorted(
+        [m for m in [metrics.coc_return, metrics.irr, metrics.equity_multiple] if m],
+        key=lambda m: rating_order.get(m.performance_rating.lower(), 4)
+    )
+    
+    risk_metrics = sorted(
+        [m for m in [metrics.dscr, metrics.break_even_ratio] if m],
+        key=lambda m: rating_order.get(m.performance_rating.lower(), 4)
+    )
 
     col1, col2, col3 = st.columns(3)
 
     with col1:
         st.markdown("**Profitability Metrics**")
-        for metric in [metrics.noi_year1, metrics.cap_rate, metrics.cash_flow_year1]:
+        for metric in profitability_metrics:
             display_metric_card(metric)
 
     with col2:
         st.markdown("**Return Metrics**")
-        for metric in [metrics.coc_return, metrics.irr, metrics.equity_multiple]:
-            if metric:
-                display_metric_card(metric)
+        for metric in return_metrics:
+            display_metric_card(metric)
 
     with col3:
         st.markdown("**Risk Metrics**")
-        for metric in [metrics.dscr, metrics.break_even_ratio]:
-            if metric:
-                display_metric_card(metric)
+        for metric in risk_metrics:
+            display_metric_card(metric)
 
 
 def display_metric_card(metric):
-    """Display a single metric card."""
+    """Display a single metric card with performance-based color coding."""
     rating_class = metric.performance_rating.lower()
+    
+    # Get metric display name
+    metric_name = metric.metric_type.replace('_', ' ').title()
+    
+    # Add emoji indicators
+    rating_emoji = {
+        'excellent': '🌟',
+        'good': '✓',
+        'fair': '⚠️',
+        'poor': '✗',
+        'unknown': '?'
+    }
+    emoji = rating_emoji.get(rating_class, '')
+    
     st.markdown(
         f"""
-        <div class='metric-card'>
-            <h4>{metric.metric_type.replace('_', ' ').title()}</h4>
-            <h2 class='{rating_class}'>{metric.formatted_value}</h2>
-            <p>Rating: {metric.performance_rating}</p>
+        <div class='metric-card {rating_class}'>
+            <h4>{metric_name}</h4>
+            <h2>{metric.formatted_value}</h2>
+            <p>{emoji} {metric.performance_rating}</p>
         </div>
         """,
         unsafe_allow_html=True,
