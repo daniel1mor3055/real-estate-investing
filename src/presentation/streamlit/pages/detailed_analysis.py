@@ -62,6 +62,15 @@ def detailed_analysis_page():
             expenses_inputs,
         )
 
+    # Save configuration section (after tabs)
+    _render_save_config_section(
+        config_loader,
+        property_inputs,
+        financing_inputs,
+        income_inputs,
+        expenses_inputs,
+    )
+
 
 def _render_config_management(config_loader: ConfigLoader):
     """Render configuration management controls."""
@@ -91,6 +100,96 @@ def _render_config_management(config_loader: ConfigLoader):
                 del st.session_state["loaded_config"]
                 st.success("Configuration cleared")
                 st.rerun()
+
+
+def _render_save_config_section(
+    config_loader: ConfigLoader,
+    property_inputs: dict,
+    financing_inputs: dict,
+    income_inputs: dict,
+    expenses_inputs: dict,
+):
+    """Render save configuration section."""
+    st.divider()
+    st.subheader("Save Configuration")
+    
+    col1, col2 = st.columns([3, 1])
+    
+    with col1:
+        config_name = st.text_input(
+            "Configuration Name",
+            placeholder="e.g., 'My Property Deal' or 'Oak Street Investment'",
+            help="Enter a name for this configuration. It will be saved to the deals/ directory.",
+        )
+    
+    with col2:
+        st.write("")  # Spacer to align button
+        st.write("")  # Spacer to align button
+        if st.button("Save Config", type="primary"):
+            if not config_name or config_name.strip() == "":
+                st.error("Please enter a configuration name")
+            else:
+                try:
+                    # Build configuration dictionary matching the JSON structure
+                    config_data = {
+                        "name": config_name,
+                        "property": {
+                            "address": property_inputs.get("address"),
+                            "type": property_inputs.get("type"),
+                            "purchase_price": property_inputs.get("purchase_price"),
+                            "closing_costs": property_inputs.get("closing_costs"),
+                            "rehab_budget": property_inputs.get("rehab_budget"),
+                            "units": property_inputs.get("units"),
+                            "bedrooms": property_inputs.get("bedrooms"),
+                            "bathrooms": property_inputs.get("bathrooms"),
+                            "square_footage": property_inputs.get("square_footage"),
+                            "year_built": property_inputs.get("year_built"),
+                        },
+                        "financing": {
+                            "type": financing_inputs.get("type"),
+                            "cash_purchase": financing_inputs.get("cash_purchase"),
+                            "down_payment_percent": financing_inputs.get("down_payment_percent"),
+                            "interest_rate": financing_inputs.get("interest_rate"),
+                            "loan_term": financing_inputs.get("loan_term"),
+                            "points": financing_inputs.get("points"),
+                        },
+                        "income": {
+                            "monthly_rent": income_inputs.get("monthly_rent"),
+                            "vacancy_rate": income_inputs.get("vacancy_rate"),
+                            "credit_loss": income_inputs.get("credit_loss"),
+                            "annual_increase": income_inputs.get("annual_increase"),
+                            "other_income": income_inputs.get("other_income", []),
+                        },
+                        "expenses": {
+                            "property_tax": expenses_inputs.get("property_tax"),
+                            "insurance": expenses_inputs.get("insurance"),
+                            "hoa": expenses_inputs.get("hoa"),
+                            "utilities": expenses_inputs.get("utilities"),
+                            "maintenance_percent": expenses_inputs.get("maintenance_percent"),
+                            "management_percent": expenses_inputs.get("management_percent"),
+                            "capex_percent": expenses_inputs.get("capex_percent"),
+                            "annual_increase": expenses_inputs.get("annual_increase"),
+                        },
+                    }
+                    
+                    # Add Israeli mortgage tracks if present
+                    if "israeli_tracks" in financing_inputs:
+                        config_data["financing"]["israeli_tracks"] = financing_inputs["israeli_tracks"]
+                    
+                    # Add market assumptions if present
+                    if "appreciation" in expenses_inputs or "sales_expense" in expenses_inputs:
+                        config_data["market"] = {
+                            "appreciation": expenses_inputs.get("appreciation", 3.0),
+                            "sales_expense": expenses_inputs.get("sales_expense", 7.0),
+                            "inflation": expenses_inputs.get("inflation", 2.5),
+                        }
+                    
+                    # Save the configuration
+                    saved_path = config_loader.save_configuration(config_name, config_data)
+                    st.success(f"Configuration saved to: {saved_path}")
+                    
+                except Exception as e:
+                    st.error(f"Error saving configuration: {e}")
 
 
 def _render_analysis_tab(
