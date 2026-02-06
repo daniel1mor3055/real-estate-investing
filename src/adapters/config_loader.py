@@ -37,9 +37,9 @@ class ConfigLoader:
         """Initialize the config loader.
         
         Args:
-            config_dir: Directory containing config files. Defaults to project root.
+            config_dir: Directory containing config files. Defaults to deals/ folder.
         """
-        self.config_dir = config_dir or Path.cwd()
+        self.config_dir = config_dir or Path.cwd() / "deals"
         self._config_files: Dict[str, Path] = {}
         self._refresh_config_list()
 

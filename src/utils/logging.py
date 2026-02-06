@@ -7,7 +7,7 @@ from loguru import logger
 
 def setup_logging(
     log_level: str = "INFO",
-    log_file: str = "real_estate_analysis.log",
+    log_file: str = "logs/real_estate_analysis.log",
     rotation: str = "10 MB",
     retention: str = "30 days",
     format_string: str = None

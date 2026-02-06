@@ -84,7 +84,7 @@ def analyze(
 @cli.command()
 @click.option("--config", "-c", type=click.Path(exists=True), help="JSON config file")
 @click.option("--years", "-y", default=30, help="Years to project")
-@click.option("--output", "-o", type=click.Path(), help="Output CSV file")
+@click.option("--output", "-o", type=click.Path(), default="output/proforma_output.csv", help="Output CSV file")
 def proforma(config: str, years: int, output: Optional[str]):
     """Generate pro-forma projections."""
     logger.info(f"Generating {years}-year pro-forma")
@@ -107,8 +107,10 @@ def proforma(config: str, years: int, output: Optional[str]):
     df = result.data.to_dataframe()
     _display_proforma_summary(df, years)
 
-    # Save if requested
+    # Save to output directory (create if needed)
     if output:
+        output_path = Path(output)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
         df.to_csv(output)
         console.print(f"[green]Pro-forma saved to {output}[/green]")
 

@@ -5,8 +5,8 @@ This is a thin wrapper that imports and runs the CLI from the presentation layer
 
 Usage:
     python cli.py --help
-    python cli.py analyze -c sample_deal.json
-    python cli.py proforma -c sample_deal.json -y 10
+    python cli.py analyze -c deals/sample_deal.json
+    python cli.py proforma -c deals/sample_deal.json -y 10
     python cli.py amortization -l 200000 -r 7 -t 30
 """
 
