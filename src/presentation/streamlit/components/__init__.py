@@ -6,7 +6,7 @@ from .inputs import (
     get_income_inputs,
     get_expenses_inputs,
 )
-from .metrics import display_metric_card, display_metrics_overview
+from .metrics import display_metric_card, display_metrics_overview, display_metric_with_tooltip
 from .charts import (
     display_equity_buildup_chart,
     display_income_vs_expenses_chart,
@@ -22,6 +22,7 @@ __all__ = [
     # Metric components
     "display_metric_card",
     "display_metrics_overview",
+    "display_metric_with_tooltip",
     # Chart components
     "display_equity_buildup_chart",
     "display_income_vs_expenses_chart",

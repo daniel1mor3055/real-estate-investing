@@ -5,11 +5,41 @@ import streamlit as st
 
 from ....core.calculators.metrics import MetricsBundle
 from ....core.models import Deal
+from ....utils.metrics_info import get_metric_info
 from ..styles import RATING_EMOJIS
 
 
+def display_metric_with_tooltip(label: str, value: str, metric_type: Optional[str] = None) -> None:
+    """Display a metric with an optional tooltip.
+    
+    Args:
+        label: The metric label
+        value: The formatted metric value
+        metric_type: Optional metric type for tooltip lookup (e.g., 'NOI', 'CAP_RATE')
+    """
+    col1, col2 = st.columns([0.9, 0.1])
+    
+    with col1:
+        st.metric(label, value)
+    
+    with col2:
+        if metric_type:
+            metric_info = get_metric_info(metric_type)
+            if metric_info:
+                with st.popover("ℹ️", use_container_width=False):
+                    st.markdown(f"**{metric_info.name}**")
+                    st.write(metric_info.tooltip_text)
+                    
+                    if metric_info.formula:
+                        st.markdown(f"**Formula:**")
+                        st.code(metric_info.formula, language=None)
+                    
+                    if metric_info.note:
+                        st.info(metric_info.note)
+
+
 def display_metric_card(metric) -> None:
-    """Display a single metric card with performance-based color coding.
+    """Display a single metric card with performance-based color coding and tooltip.
     
     Args:
         metric: MetricResult object to display
@@ -17,17 +47,44 @@ def display_metric_card(metric) -> None:
     rating_class = metric.performance_rating.lower()
     metric_name = metric.metric_type.replace("_", " ").title()
     emoji = RATING_EMOJIS.get(rating_class, "")
+    
+    # Get metric info for tooltip
+    metric_info = get_metric_info(metric.metric_type)
 
-    st.markdown(
-        f"""
-        <div class='metric-card {rating_class}'>
-            <h4>{metric_name}</h4>
-            <h2>{metric.formatted_value}</h2>
-            <p>{emoji} {metric.performance_rating}</p>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    # Display metric card with help icon
+    col1, col2 = st.columns([0.9, 0.1])
+    
+    with col1:
+        st.markdown(
+            f"""
+            <div class='metric-card {rating_class}'>
+                <h4>{metric_name}</h4>
+                <h2>{metric.formatted_value}</h2>
+                <p>{emoji} {metric.performance_rating}</p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    
+    with col2:
+        if metric_info:
+            # Create an expander with the metric information
+            with st.popover("ℹ️", use_container_width=False):
+                st.markdown(f"**{metric_info.name}**")
+                st.write(metric_info.tooltip_text)
+                
+                if metric_info.formula:
+                    st.markdown(f"**Formula:**")
+                    st.code(metric_info.formula, language=None)
+                
+                if metric_info.includes:
+                    st.markdown("**Includes:** " + ", ".join(metric_info.includes))
+                
+                if metric_info.excludes:
+                    st.markdown("**Excludes:** " + ", ".join(metric_info.excludes))
+                
+                if metric_info.note:
+                    st.info(metric_info.note)
 
 
 def display_metrics_overview(deal: Deal, metrics: MetricsBundle) -> None:
@@ -39,18 +96,33 @@ def display_metrics_overview(deal: Deal, metrics: MetricsBundle) -> None:
     """
     st.subheader("Investment Summary")
 
-    # Deal score prominently displayed
+    # Deal score prominently displayed with tooltip
     if metrics.deal_score:
         score = metrics.deal_score.value
         color = "green" if score >= 70 else "orange" if score >= 50 else "red"
-        st.markdown(
-            f"<h1 style='text-align: center; color: {color};'>Deal Score: {score:.0f}/100</h1>",
-            unsafe_allow_html=True,
-        )
-        st.markdown(
-            f"<p style='text-align: center;'>Based on {metrics.deal_score.metadata['investor_profile']} investor profile</p>",
-            unsafe_allow_html=True,
-        )
+        
+        col1, col2, col3 = st.columns([1, 3, 1])
+        with col2:
+            st.markdown(
+                f"<h1 style='text-align: center; color: {color};'>Deal Score: {score:.0f}/100</h1>",
+                unsafe_allow_html=True,
+            )
+            st.markdown(
+                f"<p style='text-align: center;'>Based on {metrics.deal_score.metadata['investor_profile']} investor profile</p>",
+                unsafe_allow_html=True,
+            )
+        
+        with col3:
+            deal_score_info = get_metric_info("DEAL_SCORE")
+            if deal_score_info:
+                with st.popover("ℹ️ About Deal Score", use_container_width=False):
+                    st.markdown(f"**{deal_score_info.name}**")
+                    st.write(deal_score_info.tooltip_text)
+                    if deal_score_info.formula:
+                        st.markdown(f"**How it's calculated:**")
+                        st.write(deal_score_info.formula)
+                    if deal_score_info.note:
+                        st.info(deal_score_info.note)
 
     st.subheader("Key Performance Indicators")
 
@@ -117,7 +189,11 @@ def display_deal_summary(deal: Deal) -> None:
 
     with col3:
         st.metric("Monthly Rent", format_currency(deal.income.monthly_rent_per_unit * deal.property.num_units))
-        st.metric("Year 1 NOI", format_currency(deal.get_year_1_noi()))
+        display_metric_with_tooltip(
+            "Year 1 NOI", 
+            format_currency(deal.get_year_1_noi()),
+            "NOI"
+        )
 
 
 def display_metrics_comparison(
