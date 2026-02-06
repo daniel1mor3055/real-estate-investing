@@ -1,0 +1,210 @@
+{
+  "NOI": {
+    "name": "Net Operating Income",
+    "shortName": "NOI",
+    "definition": "NOI is the property's annual profit after operating expenses but before the mortgage and taxes. It's the core measure of operational performance and is used for cap rate valuation and lender coverage tests.",
+    "formula": "Gross Operating Income - Operating Expenses",
+    "includes": ["Property taxes", "Insurance", "Maintenance", "Management fees", "Utilities you cover"],
+    "excludes": ["Principal and Interest (debt service)", "Capital Expenditures"],
+    "higherIsBetter": true,
+    "benchmarks": {
+      "low": 10000,
+      "target": 20000,
+      "high": 40000
+    },
+    "category": "property_unlevered",
+    "tooltipText": "NOI is the property's annual profit after operating expenses but before the mortgage and taxes. It's the core measure of operational performance and is used for cap rate valuation and lender coverage tests."
+  },
+  "CAP_RATE": {
+    "name": "Capitalization Rate",
+    "shortName": "Cap Rate",
+    "definition": "Cap rate is NOI divided by property value — an unlevered yield implied by the current income and price. It's mainly a market comparison and valuation tool, not a full return metric.",
+    "formula": "NOI ÷ Property Value",
+    "includes": [],
+    "excludes": ["Financing impact", "Future value appreciation"],
+    "higherIsBetter": true,
+    "benchmarks": {
+      "low": 0.04,
+      "target": 0.065,
+      "high": 0.09
+    },
+    "category": "property_unlevered",
+    "tooltipText": "Cap rate is NOI divided by property value — an unlevered yield implied by the current income and price. It's mainly a market comparison and valuation tool, not a full return metric."
+  },
+  "CASH_FLOW": {
+    "name": "Cash Flow",
+    "shortName": "Cash Flow",
+    "definition": "Year-1 cash flow is the property's remaining pre-tax profit after operating expenses and debt payments are made. Positive cash flow generally means the deal can support itself day-to-day.",
+    "formula": "NOI - Debt Service (Principal + Interest)",
+    "includes": ["Operating income", "Operating expenses", "Debt service"],
+    "excludes": ["Income taxes", "CapEx reserves (unless specified)"],
+    "higherIsBetter": true,
+    "benchmarks": null,
+    "category": "deal_levered",
+    "tooltipText": "Year-1 cash flow is the property's remaining pre-tax profit after operating expenses and debt payments are made. Positive cash flow generally means the deal can support itself day-to-day.",
+    "note": "This is pre-tax cash flow before reserves"
+  },
+  "COC_RETURN": {
+    "name": "Cash-on-Cash Return",
+    "shortName": "CoC",
+    "definition": "Cash-on-cash return is annual pre-tax cash flow ÷ total cash invested. It measures the first-year cash yield on your actual out-of-pocket investment and is heavily influenced by leverage.",
+    "formula": "Annual Pre-Tax Cash Flow ÷ Total Cash Invested",
+    "includes": ["Down payment", "Closing costs", "Initial improvements/rehab"],
+    "excludes": ["Appreciation", "Principal paydown", "Sale proceeds"],
+    "higherIsBetter": true,
+    "benchmarks": {
+      "low": 0.06,
+      "target": 0.10,
+      "high": 0.15
+    },
+    "category": "deal_levered",
+    "tooltipText": "Cash-on-cash return is annual pre-tax cash flow ÷ total cash invested. It measures the first-year cash yield on your actual out-of-pocket investment and is heavily influenced by leverage."
+  },
+  "DSCR": {
+    "name": "Debt Service Coverage Ratio",
+    "shortName": "DSCR",
+    "definition": "DSCR is NOI ÷ annual debt service — how many times the property's operating income covers the mortgage payments. Higher DSCR means more cushion and generally lower lender/investor risk.",
+    "formula": "NOI ÷ Annual Debt Service",
+    "includes": [],
+    "excludes": [],
+    "higherIsBetter": true,
+    "benchmarks": {
+      "low": 1.2,
+      "target": 1.5,
+      "high": 2.0
+    },
+    "category": "risk",
+    "tooltipText": "DSCR is NOI ÷ annual debt service — how many times the property's operating income covers the mortgage payments. Higher DSCR means more cushion and generally lower lender/investor risk.",
+    "interpretation": {
+      "below_1": "Property doesn't generate enough to cover mortgage (red flag)",
+      "at_1": "Break-even (risky)",
+      "above_1": "Cushion exists (safer)",
+      "at_1.25": "Typical lender minimum",
+      "at_1.5_plus": "Strong coverage"
+    }
+  },
+  "GRM": {
+    "name": "Gross Rent Multiplier",
+    "shortName": "GRM",
+    "definition": "GRM is price ÷ gross annual rent. It's a quick screening metric that ignores vacancy and expenses, so it's best used only for early comparisons.",
+    "formula": "Property Price ÷ Gross Annual Rent",
+    "includes": ["Property price", "Gross rent (before vacancy)"],
+    "excludes": ["Vacancy losses", "Operating expenses", "Debt service"],
+    "higherIsBetter": false,
+    "benchmarks": {
+      "low": 4.0,
+      "target": 8.0,
+      "high": 12.0
+    },
+    "category": "property_unlevered",
+    "tooltipText": "GRM is price ÷ gross annual rent. It's a quick screening metric that ignores vacancy and expenses, so it's best used only for early comparisons.",
+    "note": "Lower GRM = better value per rent dollar"
+  },
+  "IRR": {
+    "name": "Internal Rate of Return",
+    "shortName": "IRR",
+    "definition": "IRR is the annualized return rate that makes the investment's NPV equal zero, considering all cash flows and the sale. It's a time-weighted metric that's best read alongside equity multiple or NPV.",
+    "formula": "Rate r where NPV = 0 = -Initial Investment + Σ(Cash Flow_t / (1 + r)^t) + Sale Proceeds / (1 + r)^n",
+    "includes": ["All cash flows over holding period", "Sale proceeds", "Time value of money"],
+    "excludes": [],
+    "higherIsBetter": true,
+    "benchmarks": {
+      "low": 0.08,
+      "target": 0.15,
+      "high": 0.25
+    },
+    "category": "lifecycle",
+    "tooltipText": "IRR is the annualized return rate that makes the investment's NPV equal zero, considering all cash flows and the sale. It's a time-weighted metric that's best read alongside equity multiple or NPV.",
+    "note": "Best used with Equity Multiple to show both speed and magnitude of returns"
+  },
+  "NPV": {
+    "name": "Net Present Value",
+    "shortName": "NPV",
+    "definition": "NPV is the value today of all future cash flows discounted at your required return, minus the initial investment. Positive NPV means the deal is expected to outperform your hurdle rate.",
+    "formula": "Σ(Cash Flow_t / (1 + discount_rate)^t) + Sale Proceeds / (1 + discount_rate)^n - Initial Investment",
+    "includes": ["All future cash flows", "Sale proceeds", "Discount rate"],
+    "excludes": [],
+    "higherIsBetter": true,
+    "benchmarks": null,
+    "category": "lifecycle",
+    "tooltipText": "NPV is the value today of all future cash flows discounted at your required return, minus the initial investment. Positive NPV means the deal is expected to outperform your hurdle rate.",
+    "note": "Heavily depends on chosen discount rate"
+  },
+  "EQUITY_MULTIPLE": {
+    "name": "Equity Multiple",
+    "shortName": "Equity Multiple",
+    "definition": "Equity multiple is total cash returned ÷ total equity invested. It shows overall cash profit but doesn't account for how long it takes — pair it with IRR for timing.",
+    "formula": "Total Cash Returned ÷ Total Equity Invested",
+    "includes": ["All operating cash flows", "Net sale proceeds"],
+    "excludes": ["Time value of money"],
+    "higherIsBetter": true,
+    "benchmarks": {
+      "low": 1.5,
+      "target": 2.0,
+      "high": 3.0
+    },
+    "category": "lifecycle",
+    "tooltipText": "Equity multiple is total cash returned ÷ total equity invested. It shows overall cash profit but doesn't account for how long it takes — pair it with IRR for timing.",
+    "interpretation": {
+      "below_1": "Losing money",
+      "at_1": "Break-even (no profit)",
+      "1.5_to_2": "Solid returns",
+      "2_plus": "Strong returns",
+      "3_plus": "Exceptional returns"
+    }
+  },
+  "BREAK_EVEN_RATIO": {
+    "name": "Break-even Ratio",
+    "shortName": "Break-even Ratio",
+    "definition": "Break-even ratio is (operating expenses + debt service) ÷ gross operating income. Lower is safer because the property needs less income to cover all required payments.",
+    "formula": "(Operating Expenses + Debt Service) ÷ Gross Operating Income",
+    "includes": ["Operating expenses", "Debt service"],
+    "excludes": [],
+    "higherIsBetter": false,
+    "benchmarks": {
+      "low": 0.70,
+      "target": 0.85,
+      "high": 0.95
+    },
+    "category": "risk",
+    "tooltipText": "Break-even ratio is (operating expenses + debt service) ÷ gross operating income. Lower is safer because the property needs less income to cover all required payments.",
+    "interpretation": {
+      "below_70": "Very safe (lots of cushion)",
+      "70_to_85": "Good cushion",
+      "85_to_95": "Moderate risk",
+      "above_95": "High risk (little room for vacancy)",
+      "above_100": "Deal doesn't support itself"
+    },
+    "note": "Lower = more safety cushion"
+  },
+  "DEAL_SCORE": {
+    "name": "Deal Score",
+    "shortName": "Deal Score",
+    "definition": "Deal Score is a weighted composite that summarizes multiple metrics (returns + safety) into a single 0–100 rating. Use it to compare deals quickly, then drill into the underlying KPIs to see what's driving the score.",
+    "formula": "Weighted combination of CoC, IRR, DSCR, Cap Rate, and Equity Multiple based on investor profile",
+    "includes": ["Multiple KPIs", "Investor profile weights"],
+    "excludes": [],
+    "higherIsBetter": true,
+    "benchmarks": {
+      "low": 40,
+      "target": 60,
+      "high": 80
+    },
+    "category": "summary",
+    "tooltipText": "Deal Score is a weighted composite that summarizes multiple metrics (returns + safety) into a single 0–100 rating. Use it to compare deals quickly, then drill into the underlying KPIs to see what's driving the score.",
+    "note": "Configurable based on investment strategy"
+  },
+  "ROE": {
+    "name": "Return on Equity",
+    "shortName": "ROE",
+    "definition": "ROE measures how efficiently the property's current equity is generating returns (often annual cash flow divided by current equity). It's useful for hold/sell decisions when equity has grown but cash flow hasn't.",
+    "formula": "Annual Cash Flow ÷ Current Equity (or include appreciation + principal paydown)",
+    "includes": ["Current equity", "Annual returns"],
+    "excludes": ["Initial investment (use CoC for that)"],
+    "higherIsBetter": true,
+    "benchmarks": null,
+    "category": "lifecycle",
+    "tooltipText": "ROE measures how efficiently the property's current equity is generating returns (often annual cash flow divided by current equity). It's useful for hold/sell decisions when equity has grown but cash flow hasn't.",
+    "note": "Compare to alternative investment returns for hold/sell decisions"
+  }
+}
