@@ -10,7 +10,7 @@ import os
 # Add src directory to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
-from src.models.financing import Financing, FinancingType, SubLoan, IsraeliMortgageTrack
+from src.core.models.financing import Financing, FinancingType, SubLoan, IsraeliMortgageTrack
 import numpy_financial as npf
 
 
