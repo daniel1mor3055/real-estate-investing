@@ -1,0 +1,28 @@
+---
+description: Never create tests unless explicitly requested by the user
+alwaysApply: true
+---
+
+# No Automatic Test Creation
+
+**FORBIDDEN**: NEVER create, suggest, or generate test files unless the user explicitly requests them.
+
+## Examples of Explicit Requests
+
+✅ User asks: "Write tests for the Calculator class"
+✅ User asks: "Add unit tests"
+✅ User asks: "Create a test file for this component"
+
+## Prohibited Behavior
+
+❌ Creating test files proactively after implementing features
+❌ Suggesting "we should add tests" without being asked
+❌ Adding test files to TODO lists unless user requested testing
+❌ Including tests in implementation plans unless user mentioned testing
+
+## When Tests ARE Requested
+
+When the user explicitly asks for tests:
+- Write comprehensive, well-structured tests
+- Follow project testing conventions
+- Include edge cases and error scenarios
