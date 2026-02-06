@@ -76,16 +76,26 @@ def _render_config_management(config_loader: ConfigLoader):
     """Render configuration management controls."""
     col1, col2, col3 = st.columns([2, 1, 1])
     
-    available_configs = ["None (Manual Input)"] + config_loader.list_available_configs()
+    # Get all available configs dynamically from deals/ directory
+    available_configs = config_loader.list_available_configs()
+    
+    # Prepend Manual option
+    dropdown_options = ["Manual"] + available_configs
+    
+    # Set default to "Itzhak Navon 21" if available, otherwise "Manual"
+    default_index = 0
+    if "Itzhak Navon 21" in available_configs:
+        default_index = dropdown_options.index("Itzhak Navon 21")
     
     with col1:
         config_file = st.selectbox(
             "Load Configuration",
-            available_configs + ["Custom..."],
+            dropdown_options,
+            index=default_index,
         )
     with col2:
         if st.button("Load Config"):
-            if config_file not in ["None (Manual Input)", "Custom..."]:
+            if config_file != "Manual":
                 try:
                     config_loaded = config_loader.load_configuration(config_file)
                     if config_loaded:

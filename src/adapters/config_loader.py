@@ -71,7 +71,8 @@ class ConfigLoader:
         Returns:
             Configuration dictionary or None if not found
         """
-        if config_name == "None (Manual Input)":
+        # Handle manual input option
+        if config_name in ["Manual", "None (Manual Input)"]:
             return None
 
         # Check if it's a known config
