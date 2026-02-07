@@ -749,3 +749,55 @@ def get_expenses_inputs() -> Dict[str, Any]:
         "capex_amount": capex_amount,
         "annual_increase": annual_increase,
     }
+
+
+def get_market_inputs() -> Dict[str, Any]:
+    """Get market assumptions input fields.
+    
+    Returns:
+        Dictionary of market assumption values
+    """
+    st.subheader("Market Assumptions")
+    
+    config = st.session_state.get("loaded_config")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        appreciation = st.number_input(
+            "Annual Appreciation %",
+            value=float(get_config_value(config, "market.appreciation", 3.5)),
+            min_value=0.0,
+            max_value=20.0,
+            step=0.1,
+            format="%.1f",
+            help="Expected annual property value appreciation rate"
+        )
+    
+    with col2:
+        sales_expense = st.number_input(
+            "Sales Expense %",
+            value=float(get_config_value(config, "market.sales_expense", 7.0)),
+            min_value=0.0,
+            max_value=15.0,
+            step=0.5,
+            format="%.1f",
+            help="Transaction costs when selling (agent fees, closing costs, etc.)"
+        )
+    
+    with col3:
+        inflation = st.number_input(
+            "Inflation Rate %",
+            value=float(get_config_value(config, "market.inflation", 2.5)),
+            min_value=0.0,
+            max_value=15.0,
+            step=0.1,
+            format="%.1f",
+            help="Expected annual inflation rate"
+        )
+    
+    return {
+        "appreciation": appreciation,
+        "sales_expense": sales_expense,
+        "inflation": inflation,
+    }

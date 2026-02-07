@@ -12,6 +12,7 @@ from ..components.inputs import (
     get_financing_inputs,
     get_income_inputs,
     get_expenses_inputs,
+    get_market_inputs,
 )
 from ..components.metrics import display_metrics_overview
 from ..components.charts import (
@@ -36,8 +37,8 @@ def detailed_analysis_page():
     _render_config_management(config_loader)
 
     # Use tabs for organization
-    tab1, tab2, tab3, tab4, tab5 = st.tabs(
-        ["Property", "Financing", "Income", "Expenses", "Analysis"]
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(
+        ["Property", "Financing", "Income", "Expenses", "Market", "Analysis"]
     )
 
     with tab1:
@@ -51,8 +52,11 @@ def detailed_analysis_page():
 
     with tab4:
         expenses_inputs = get_expenses_inputs()
-
+    
     with tab5:
+        market_inputs = get_market_inputs()
+
+    with tab6:
         _render_analysis_tab(
             deal_service,
             analysis_service,
@@ -60,6 +64,7 @@ def detailed_analysis_page():
             financing_inputs,
             income_inputs,
             expenses_inputs,
+            market_inputs,
         )
 
     # Save configuration section (after tabs)
@@ -69,6 +74,7 @@ def detailed_analysis_page():
         financing_inputs,
         income_inputs,
         expenses_inputs,
+        market_inputs,
     )
 
 
@@ -118,6 +124,7 @@ def _render_save_config_section(
     financing_inputs: dict,
     income_inputs: dict,
     expenses_inputs: dict,
+    market_inputs: dict,
 ):
     """Render save configuration section."""
     st.divider()
@@ -186,13 +193,12 @@ def _render_save_config_section(
                     if "israeli_tracks" in financing_inputs:
                         config_data["financing"]["israeli_tracks"] = financing_inputs["israeli_tracks"]
                     
-                    # Add market assumptions if present
-                    if "appreciation" in expenses_inputs or "sales_expense" in expenses_inputs:
-                        config_data["market"] = {
-                            "appreciation": expenses_inputs.get("appreciation", 3.0),
-                            "sales_expense": expenses_inputs.get("sales_expense", 7.0),
-                            "inflation": expenses_inputs.get("inflation", 2.5),
-                        }
+                    # Add market assumptions
+                    config_data["market"] = {
+                        "appreciation": market_inputs.get("appreciation", 3.5),
+                        "sales_expense": market_inputs.get("sales_expense", 7.0),
+                        "inflation": market_inputs.get("inflation", 2.5),
+                    }
                     
                     # Save the configuration
                     saved_path = config_loader.save_configuration(config_name, config_data)
@@ -209,6 +215,7 @@ def _render_analysis_tab(
     financing_inputs: dict,
     income_inputs: dict,
     expenses_inputs: dict,
+    market_inputs: dict,
 ):
     """Render the analysis tab with parameters and results."""
     config = st.session_state.get("loaded_config")
@@ -255,6 +262,7 @@ def _render_analysis_tab(
             financing_inputs,
             income_inputs,
             expenses_inputs,
+            market_inputs,
         )
 
         # Store in session state
