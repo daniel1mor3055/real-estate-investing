@@ -58,7 +58,7 @@
   },
   "market": {
     "appreciation": 4.0,
-    "sales_expense": 7,
+    "sales_expense": 0,
     "inflation": 2.5
   },
   "analysis_defaults": {
