@@ -3,6 +3,7 @@
 from typing import Dict, List
 import pandas as pd
 from pydantic import BaseModel, Field
+from loguru import logger
 
 from .base import Calculator, CalculatorResult
 
@@ -153,6 +154,64 @@ class CashFlowCalculator(Calculator):
         noi = effective_income - total_expenses
         debt_service = deal.financing.monthly_payment or 0
         cash_flow = noi - debt_service
+        
+        # OPEX Logging - Log every January (month 1) or first month
+        if month == 1:
+            logger.info(f"\n{'='*80}")
+            logger.info(f"OPEX BREAKDOWN - Year {year}, Month {month} | Deal: {deal.deal_id}")
+            logger.info(f"{'='*80}")
+            
+            # Income section
+            logger.info(f"\n📊 INCOME CALCULATION:")
+            logger.info(f"  Growth Factor = (1 + {deal.income.annual_rent_increase_percent}% / 100) ^ ({year} - 1) = {growth_factor:.4f}")
+            logger.info(f"  Gross Rent = ({deal.income.monthly_rent_per_unit:.2f} × {deal.property.num_units} units) × {growth_factor:.4f} = {gross_rent:.2f}")
+            logger.info(f"  Other Income = {other_income:.2f}")
+            logger.info(f"  Total Income = {gross_rent:.2f} + {other_income:.2f} = {total_income:.2f}")
+            logger.info(f"  Vacancy Loss = {total_income:.2f} × {deal.income.vacancy_rate_percent}% = {vacancy_loss:.2f}")
+            logger.info(f"  Effective Income = {total_income:.2f} - {vacancy_loss:.2f} = {effective_income:.2f}")
+            logger.info(f"  Annual EGI = {effective_income:.2f} × 12 = {annual_egi:.2f}")
+            
+            # OPEX section
+            logger.info(f"\n💰 OPEX CALCULATION:")
+            logger.info(f"  Expense Growth Factor = (1 + {deal.expenses.annual_expense_growth_percent}% / 100) ^ ({year} - 1) = {expense_growth:.4f}")
+            
+            logger.info(f"\n  📌 FIXED EXPENSES:")
+            logger.info(f"    Property Tax = ({deal.expenses.property_tax_annual:.2f} / 12) × {expense_growth:.4f} = {property_tax:.2f}")
+            logger.info(f"    Insurance = ({deal.expenses.insurance_annual:.2f} / 12) × {expense_growth:.4f} = {insurance:.2f}")
+            logger.info(f"    HOA = {deal.expenses.hoa_monthly:.2f} × {expense_growth:.4f} = {hoa:.2f}")
+            logger.info(f"    Utilities = {deal.expenses.landlord_paid_utilities_monthly:.2f} × {expense_growth:.4f} = {utilities:.2f}")
+            fixed_total = property_tax + insurance + hoa + utilities
+            logger.info(f"    ➡️  Fixed Total = {fixed_total:.2f}")
+            
+            logger.info(f"\n  📊 VARIABLE EXPENSES (% of Annual EGI):")
+            logger.info(f"    Maintenance = ({annual_egi:.2f} × {deal.expenses.maintenance_percent}%) / 12 = {maintenance:.2f}")
+            logger.info(f"    Property Mgmt = ({annual_egi:.2f} × {deal.expenses.property_management_percent}%) / 12 = {property_management:.2f}")
+            variable_total = maintenance + property_management
+            logger.info(f"    ➡️  Variable Total = {variable_total:.2f}")
+            
+            if other_expenses > 0:
+                logger.info(f"\n  📝 OTHER EXPENSES:")
+                for expense in deal.expenses.other_expenses:
+                    annual_exp = expense.calculate_annual_expense(annual_egi, deal.property.num_units)
+                    monthly_exp = annual_exp / 12
+                    logger.info(f"    {expense.category.value}: {monthly_exp:.2f} (Annual: {annual_exp:.2f})")
+                logger.info(f"    ➡️  Other Total = {other_expenses:.2f}")
+            
+            logger.info(f"\n  💵 TOTAL MONTHLY OPEX:")
+            logger.info(f"    Fixed: {fixed_total:.2f}")
+            logger.info(f"    Variable: {variable_total:.2f}")
+            logger.info(f"    Other: {other_expenses:.2f}")
+            logger.info(f"    ➡️  TOTAL = {total_expenses:.2f}")
+            
+            opex_ratio = (total_expenses / effective_income * 100) if effective_income > 0 else 0
+            logger.info(f"    📈 OPEX Ratio = {total_expenses:.2f} / {effective_income:.2f} = {opex_ratio:.2f}%")
+            
+            # Cash Flow section
+            logger.info(f"\n💸 CASH FLOW:")
+            logger.info(f"  NOI = {effective_income:.2f} - {total_expenses:.2f} = {noi:.2f}")
+            logger.info(f"  Debt Service = {debt_service:.2f}")
+            logger.info(f"  Pre-Tax Cash Flow = {noi:.2f} - {debt_service:.2f} = {cash_flow:.2f}")
+            logger.info(f"{'='*80}\n")
         
         return MonthlyCashFlow(
             month=month,

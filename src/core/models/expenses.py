@@ -168,18 +168,44 @@ class OperatingExpenses(BaseModel):
         return fixed + variable + other
     
     def project_expenses(self, year: int, egi: float, num_units: int = 1) -> float:
-        """Project expenses for a specific year with growth."""
-        base_expenses = self.calculate_total_operating_expenses(egi, num_units)
+        """
+        Project expenses for a specific year with growth.
+        
+        Note: Only fixed expenses grow with expense_growth_factor.
+        Variable expenses (% of EGI) automatically grow as EGI grows.
+        """
         growth_factor = (1 + self.annual_expense_growth_percent / 100) ** (year - 1)
-        return base_expenses * growth_factor
+        
+        # Fixed expenses grow with expense inflation
+        fixed = self.calculate_fixed_expenses() * growth_factor
+        
+        # Variable expenses (% of EGI) don't need additional growth factor
+        # They already grow because they're calculated from the grown EGI
+        variable = self.calculate_variable_expenses(egi)
+        
+        # Other expenses - need to determine if they're fixed or variable
+        other = self.calculate_other_expenses(egi, num_units)
+        
+        return fixed + variable + other
     
-    def get_expense_breakdown(self, egi: float, num_units: int = 1) -> Dict[str, float]:
-        """Get detailed breakdown of all expenses."""
+    def get_expense_breakdown(self, egi: float, num_units: int = 1, year: int = 1) -> Dict[str, float]:
+        """
+        Get detailed breakdown of all expenses.
+        
+        Args:
+            egi: Effective Gross Income for the year
+            num_units: Number of units
+            year: Year number (for applying growth to fixed expenses)
+        """
+        growth_factor = (1 + self.annual_expense_growth_percent / 100) ** (year - 1)
+        
         breakdown = {
-            "property_tax": self.property_tax_annual,
-            "insurance": self.insurance_annual,
-            "hoa": self.hoa_monthly * 12,
-            "utilities": self.landlord_paid_utilities_monthly * 12,
+            # Fixed expenses with growth
+            "property_tax": self.property_tax_annual * growth_factor,
+            "insurance": self.insurance_annual * growth_factor,
+            "hoa": self.hoa_monthly * 12 * growth_factor,
+            "utilities": self.landlord_paid_utilities_monthly * 12 * growth_factor,
+            # Variable expenses (% of EGI) - no additional growth factor needed
             "maintenance": egi * (self.maintenance_percent / 100),
             "property_management": egi * (self.property_management_percent / 100),
             "capex_reserve": egi * (self.capex_reserve_percent / 100),
