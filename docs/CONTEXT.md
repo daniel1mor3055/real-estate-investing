@@ -182,8 +182,11 @@ This category requires the most detailed research and itemization. [cite\_start]
 
 [cite\_start]The Equity Multiple provides a simple, intuitive measure of total cash profitability over the life of the investment[cite: 154].
 
-  * [cite\_start]**Formula**: $$\text{EM} = \frac{\text{Total Cash Distributions} + \text{Net Sale Proceeds}}{\text{Total Equity Invested}}$$ [cite: 156]
+  * [cite\_start]**Formula**: $$\text{EM} = \frac{\text{Total Cash Distributions}}{\text{Total Equity Invested}}$$ [cite: 156]
+    * **Total Cash Distributions (Numerator)**: Sum of all positive operating cash flows + net sale proceeds
+    * **Total Equity Invested (Denominator)**: Initial investment + any additional capital contributions (years with negative cash flow)
   * [cite\_start]**Strategic Purpose**: It answers the straightforward question: "For every dollar I invest, how many dollars will I get back?"[cite: 156]. [cite\_start]An EM of 2.5x means the investor received $2.50 for every $1.00 invested[cite: 157]. [cite\_start]It is a powerful measure of capital multiplication but does not account for the holding period[cite: 158].
+  * **Important Note**: Negative cash flow years represent additional capital contributions and are added to the denominator (Total Equity Invested), not subtracted from the numerator. This follows the standard MOIC (Multiple on Invested Capital) calculation used in private equity and real estate investment analysis.
 
 #### 2.3.3 Internal Rate of Return (IRR)
 

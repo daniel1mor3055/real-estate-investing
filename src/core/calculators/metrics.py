@@ -4,6 +4,7 @@ from typing import Dict, List, Optional
 import numpy as np
 import numpy_financial as npf
 from pydantic import BaseModel, Field
+from loguru import logger
 
 from .base import Calculator, CalculatorResult
 from .proforma import ProFormaCalculator
@@ -227,9 +228,70 @@ class MetricsCalculator(Calculator):
             metadata={"discount_rate": discount_rate}
         )
         
-        # Equity Multiple
-        total_distributions = df.loc[1:, 'pre_tax_cash_flow'].sum() + net_proceeds
-        equity_multiple = total_distributions / proforma.initial_investment if proforma.initial_investment > 0 else 0
+        # Equity Multiple - Log detailed calculation
+        logger.info(f"\n{'='*90}")
+        logger.info(f"📊 EQUITY MULTIPLE CALCULATION | Deal: {self.deal.deal_id}")
+        logger.info(f"{'='*90}")
+        
+        # Calculate components - CORRECT METHOD:
+        # Negative cash flows = Additional capital contributions (go in denominator)
+        # Positive cash flows = Distributions (go in numerator)
+        # This is the standard in private equity and real estate (MOIC calculation)
+        
+        positive_cash_flows = 0.0
+        additional_capital = 0.0
+        positive_years = 0
+        negative_years = 0
+        
+        logger.info(f"\n💵 ANALYZING ANNUAL CASH FLOWS (Years 1-{holding_period}):")
+        for year in range(1, holding_period + 1):
+            if year <= len(df):
+                cf = df.loc[year, 'pre_tax_cash_flow']
+                if cf >= 0:
+                    logger.info(f"  Year {year}: +${cf:,.2f} (Distribution)")
+                    positive_cash_flows += cf
+                    positive_years += 1
+                else:
+                    logger.info(f"  Year {year}: ${cf:,.2f} ⚠️ ADDITIONAL CAPITAL REQUIRED")
+                    additional_capital += abs(cf)  # Make it positive for clarity
+                    negative_years += 1
+        
+        # Total Invested Capital (Denominator)
+        logger.info(f"\n💸 TOTAL INVESTED CAPITAL (Denominator):")
+        logger.info(f"  Initial Investment (Year 0) = ${proforma.initial_investment:,.2f}")
+        if negative_years > 0:
+            logger.info(f"  Additional Capital (from {negative_years} negative years) = ${additional_capital:,.2f}")
+            logger.info(f"  ⚠️  Note: Negative cash flow years = additional capital contributions")
+        total_invested_capital = proforma.initial_investment + additional_capital
+        logger.info(f"  ➡️  Total Invested Capital = ${proforma.initial_investment:,.2f} + ${additional_capital:,.2f} = ${total_invested_capital:,.2f}")
+        
+        # Total Distributions (Numerator)
+        logger.info(f"\n💰 TOTAL DISTRIBUTIONS (Numerator):")
+        logger.info(f"  Positive Operating Cash Flows (from {positive_years} years) = ${positive_cash_flows:,.2f}")
+        logger.info(f"  Net Sale Proceeds (Year {holding_period}) = ${net_proceeds:,.2f}")
+        total_distributions = positive_cash_flows + net_proceeds
+        logger.info(f"  ➡️  Total Distributions = ${positive_cash_flows:,.2f} + ${net_proceeds:,.2f} = ${total_distributions:,.2f}")
+        
+        # Calculate Equity Multiple
+        equity_multiple = total_distributions / total_invested_capital if total_invested_capital > 0 else 0
+        
+        logger.info(f"\n🎯 EQUITY MULTIPLE CALCULATION:")
+        logger.info(f"  Formula: Equity Multiple = Total Distributions ÷ Total Invested Capital")
+        logger.info(f"  Equity Multiple = ${total_distributions:,.2f} ÷ ${total_invested_capital:,.2f}")
+        logger.info(f"  ➡️  Equity Multiple = {equity_multiple:.2f}x")
+        
+        if equity_multiple > 1.0:
+            profit = total_distributions - total_invested_capital
+            logger.info(f"\n  ✅ PROFITABLE: For every $1 invested, you get ${equity_multiple:.2f} back")
+            logger.info(f"  💵 Total Profit = ${total_distributions:,.2f} - ${total_invested_capital:,.2f} = ${profit:,.2f}")
+        elif equity_multiple == 1.0:
+            logger.info(f"\n  ⚠️  BREAKEVEN: You get back exactly what you invested")
+        else:
+            loss = total_invested_capital - total_distributions
+            logger.info(f"\n  ❌ LOSS: You get back ${equity_multiple:.2f} for every $1 invested")
+            logger.info(f"  💸 Total Loss = ${total_invested_capital:,.2f} - ${total_distributions:,.2f} = ${loss:,.2f}")
+        
+        logger.info(f"{'='*90}\n")
         
         em_metric = MetricResult.create_equity_multiple(equity_multiple, holding_period)
         
