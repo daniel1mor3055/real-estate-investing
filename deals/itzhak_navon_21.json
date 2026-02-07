@@ -31,7 +31,7 @@
         "track_type": "prime_rate",
         "percentage": 57,
         "base_rate": 2.6,
-        "loan_term": 3,
+        "loan_term": 30,
         "bank_of_israel_rate": 1.1,
         "prime_offset": 1.5,
         "track_discount": 0.7,
