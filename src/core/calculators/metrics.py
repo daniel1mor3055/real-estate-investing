@@ -203,14 +203,78 @@ class MetricsCalculator(Calculator):
         loan_payoff = final_year['loan_balance']
         net_proceeds = sale_price - sales_costs - loan_payoff
         
-        # IRR Calculation
+        # IRR Calculation with detailed logging
+        logger.info(f"\n{'='*90}")
+        logger.info(f"📈 IRR (INTERNAL RATE OF RETURN) CALCULATION | Deal: {self.deal.deal_id}")
+        logger.info(f"{'='*90}")
+        
+        logger.info(f"\n💰 SALE PROCEEDS CALCULATION (Year {holding_period}):")
+        logger.info(f"  Property Value = ${sale_price:,.2f}")
+        logger.info(f"  Sales Costs ({self.deal.market_assumptions.sales_expense_percent}%) = ${sales_costs:,.2f}")
+        logger.info(f"  Loan Payoff = ${loan_payoff:,.2f}")
+        logger.info(f"  ➡️  Net Sale Proceeds = ${sale_price:,.2f} - ${sales_costs:,.2f} - ${loan_payoff:,.2f} = ${net_proceeds:,.2f}")
+        
+        # Build cash flows array
         cash_flows = df['pre_tax_cash_flow'].tolist()
         cash_flows[-1] += net_proceeds  # Add sale proceeds to final year
         
+        logger.info(f"\n💵 CASH FLOWS FOR IRR CALCULATION:")
+        logger.info(f"  IRR is the rate where NPV of all cash flows = 0")
+        logger.info(f"  This means finding the discount rate that makes the present value of all")
+        logger.info(f"  inflows equal to the present value of all outflows.\n")
+        
+        logger.info(f"  Complete Cash Flow Series (Years 0-{holding_period}):")
+        total_outflows = 0.0
+        total_inflows = 0.0
+        for i, cf in enumerate(cash_flows):
+            if i == 0:
+                logger.info(f"    Year {i}: ${cf:,.2f} (Initial Investment - Outflow)")
+                total_outflows += abs(cf)
+            elif i == len(cash_flows) - 1:
+                logger.info(f"    Year {i}: ${cf:,.2f} (Operating CF + Sale Proceeds)")
+                if cf >= 0:
+                    total_inflows += cf
+                else:
+                    total_outflows += abs(cf)
+            else:
+                if cf >= 0:
+                    logger.info(f"    Year {i}: ${cf:,.2f} (Operating Cash Flow)")
+                    total_inflows += cf
+                else:
+                    logger.info(f"    Year {i}: ${cf:,.2f} ⚠️ Negative Cash Flow (Additional Capital)")
+                    total_outflows += abs(cf)
+        
+        logger.info(f"\n  📊 CASH FLOW SUMMARY:")
+        logger.info(f"    Total Outflows (Investments): ${total_outflows:,.2f}")
+        logger.info(f"    Total Inflows (Returns): ${total_inflows:,.2f}")
+        net_cash = total_inflows - total_outflows
+        logger.info(f"    Net Cash Flow: ${net_cash:,.2f}")
+        
         try:
             irr = float(npf.irr(cash_flows))
-        except:
+            logger.info(f"\n🎯 IRR CALCULATION RESULT:")
+            logger.info(f"  Using numpy_financial.irr() function to solve for rate where NPV = 0")
+            logger.info(f"  ➡️  IRR = {irr*100:.2f}%")
+            
+            if irr > 0:
+                logger.info(f"\n  ✅ POSITIVE RETURN: The investment generates a {irr*100:.2f}% annualized return")
+                logger.info(f"  This is the effective annual rate of return considering:")
+                logger.info(f"    - Time value of money (earlier cash flows are worth more)")
+                logger.info(f"    - All cash inflows and outflows")
+                logger.info(f"    - The complete {holding_period}-year holding period")
+            elif irr == 0:
+                logger.info(f"\n  ⚠️  BREAKEVEN: The investment returns exactly the cost of capital")
+            else:
+                logger.info(f"\n  ❌ NEGATIVE RETURN: The investment loses {abs(irr)*100:.2f}% annually")
+        except Exception as e:
             irr = 0.0
+            logger.info(f"\n  ⚠️  IRR CALCULATION ERROR: {str(e)}")
+            logger.info(f"  This can happen when:")
+            logger.info(f"    - Cash flows don't change sign (all positive or all negative)")
+            logger.info(f"    - Multiple IRRs exist (cash flows alternate signs frequently)")
+            logger.info(f"  Setting IRR = 0.0%")
+        
+        logger.info(f"{'='*90}\n")
         
         irr_metric = MetricResult.create_irr(irr, holding_period)
         
