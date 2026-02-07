@@ -178,8 +178,11 @@ class AmortizationCalculator(Calculator):
                 sub_loan.loan_term_years * 12 for sub_loan in financing.sub_loans
             )
 
-            # Initialize monthly tracking arrays
-            monthly_totals = []
+            # Initialize balance tracking for each sub-loan
+            sub_loan_balances = {
+                i: sub_loan.loan_amount 
+                for i, sub_loan in enumerate(financing.sub_loans)
+            }
 
             for month in range(1, max_term_months + 1):
                 year = (month - 1) // 12 + 1
@@ -188,51 +191,44 @@ class AmortizationCalculator(Calculator):
                 total_payment = 0
                 total_principal = 0
                 total_interest = 0
-                remaining_balance = 0
+                beginning_balance_total = sum(sub_loan_balances.values())
 
                 # Sum payments from all active sub-loans for this month
-                for sub_loan in financing.sub_loans:
-                    if month <= sub_loan.loan_term_years * 12:
+                for i, sub_loan in enumerate(financing.sub_loans):
+                    if month <= sub_loan.loan_term_years * 12 and sub_loan_balances[i] > 0:
                         # This sub-loan is still active
                         sub_payment = sub_loan.monthly_payment
+                        current_balance = sub_loan_balances[i]
 
-                        # Calculate principal and interest for this sub-loan this month
-                        # This is a simplified calculation - in reality each track would have its own amortization
+                        # Calculate interest on current balance
                         effective_rate = sub_loan.effective_interest_rate / 100 / 12
-                        remaining_months = sub_loan.loan_term_years * 12 - month + 1
+                        interest_portion = current_balance * effective_rate
+                        principal_portion = sub_payment - interest_portion
 
-                        if remaining_months > 0 and effective_rate > 0:
-                            # Calculate remaining balance for this sub-loan
-                            remaining_principal = sub_loan.loan_amount * (
-                                ((1 + effective_rate) ** remaining_months - 1)
-                                / (
-                                    (1 + effective_rate)
-                                    ** (sub_loan.loan_term_years * 12)
-                                    - 1
-                                )
-                            )
-                            interest_portion = remaining_principal * effective_rate
-                            principal_portion = sub_payment - interest_portion
-                        else:
-                            remaining_principal = 0
-                            interest_portion = 0
-                            principal_portion = sub_payment
+                        # Handle final payment
+                        if principal_portion > current_balance:
+                            principal_portion = current_balance
+                            sub_payment = principal_portion + interest_portion
+
+                        # Update balance
+                        sub_loan_balances[i] = max(0, current_balance - principal_portion)
 
                         total_payment += sub_payment
                         total_principal += principal_portion
                         total_interest += interest_portion
-                        remaining_balance += max(0, remaining_principal)
+
+                ending_balance_total = sum(sub_loan_balances.values())
 
                 if total_payment > 0:  # Only add if there's still a payment
                     payment = AmortizationPayment(
                         payment_number=month,
                         year=year,
                         month=month_in_year,
-                        beginning_balance=remaining_balance + total_principal,
+                        beginning_balance=beginning_balance_total,
                         payment_amount=total_payment,
                         principal_payment=total_principal,
                         interest_payment=total_interest,
-                        ending_balance=remaining_balance,
+                        ending_balance=ending_balance_total,
                         cumulative_principal=sum(
                             p.principal_payment for p in all_payments
                         )
@@ -243,6 +239,10 @@ class AmortizationCalculator(Calculator):
                         + total_interest,
                     )
                     all_payments.append(payment)
+
+                # Stop if all loans are paid off
+                if ending_balance_total <= 0.01:
+                    break
 
             # Calculate totals
             total_loan_amount = sum(
