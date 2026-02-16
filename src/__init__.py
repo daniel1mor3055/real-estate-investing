@@ -1,10 +1,10 @@
 """Real Estate Investment Analysis Package.
 
 This package provides tools for analyzing real estate investment deals,
-including financial calculations, pro-forma projections, and deal scoring.
+including financial calculations and pro-forma projections.
 
 Structure:
-- core: Domain models, calculators, and strategies
+- core: Domain models and calculators
 - services: Business logic coordination
 - analysis: Advanced sensitivity and scenario analysis
 - adapters: External interfaces and persistence
@@ -40,8 +40,6 @@ from .core.calculators import (
     ProFormaCalculator,
 )
 
-from .core.strategies import get_investor_strategy, InvestorStrategy
-
 # Version
 __version__ = "2.0.0"
 
@@ -69,7 +67,4 @@ __all__ = [
     "CashFlowCalculator",
     "MetricsCalculator",
     "ProFormaCalculator",
-    # Strategies
-    "get_investor_strategy",
-    "InvestorStrategy",
 ]
