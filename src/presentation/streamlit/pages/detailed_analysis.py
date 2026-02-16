@@ -275,7 +275,6 @@ def _render_analysis_tab(
             analysis_service,
             deal,
             holding_period,
-            investor_profile,
             show_details,
         )
 

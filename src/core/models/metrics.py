@@ -230,8 +230,6 @@ class MetricResult(BaseModel):
             benchmark_high=benchmark_high,
         )
     
-<<<<<<< HEAD
-    
     @classmethod
     def create_roe(
         cls, 
