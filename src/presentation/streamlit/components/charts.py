@@ -312,8 +312,18 @@ def display_operating_metrics_timeseries(deal: Deal, holding_period: int) -> Non
                 hovertemplate="Year %{x}<br>Cash Flow: $%{y:,.0f}<extra></extra>",
             )
         )
-        # Add zero line for reference
-        fig.add_hline(y=0, line_dash="dot", line_color="red", annotation_text="Break-even")
+        # Add zero line for reference with visible annotation
+        fig.add_hline(
+            y=0, 
+            line_dash="dot", 
+            line_color="red",
+            annotation=dict(
+                text="Break-even",
+                font=dict(size=12, color="red"),
+                xanchor="right",
+                x=1
+            )
+        )
         
         fig.update_layout(
             title="Pre-Tax Cash Flow Over Time",
@@ -337,20 +347,28 @@ def display_operating_metrics_timeseries(deal: Deal, holding_period: int) -> Non
                 hovertemplate="Year %{x}<br>DSCR: %{y:.2f}x<extra></extra>",
             )
         )
-        # Add reference line at DSCR = 1.25 (typical lender requirement)
+        # Add reference lines at DSCR = 1.25 and 1.0 with visible annotations
         fig.add_hline(
             y=1.25,
             line_dash="dash",
             line_color="red",
-            annotation_text="Lender Minimum (1.25x)",
-            annotation_position="top right",
+            annotation=dict(
+                text="Lender Minimum (1.25x)",
+                font=dict(size=12, color="red"),
+                xanchor="left",
+                x=0
+            )
         )
         fig.add_hline(
             y=1.0,
             line_dash="dot",
             line_color="gray",
-            annotation_text="Break-even (1.0x)",
-            annotation_position="bottom right",
+            annotation=dict(
+                text="Break-even (1.0x)",
+                font=dict(size=12, color="gray"),
+                xanchor="left",
+                x=0
+            )
         )
         
         fig.update_layout(
@@ -384,7 +402,7 @@ def display_operating_metrics_timeseries(deal: Deal, holding_period: int) -> Non
             row=1, col=1
         )
         
-        # Cash Flow subplot
+        # Cash Flow subplot with break-even line
         fig.add_trace(
             go.Scatter(
                 x=df_operating.index,
@@ -395,9 +413,20 @@ def display_operating_metrics_timeseries(deal: Deal, holding_period: int) -> Non
             ),
             row=2, col=1
         )
-        fig.add_hline(y=0, line_dash="dot", line_color="red", row=2, col=1)
+        fig.add_hline(
+            y=0, 
+            line_dash="dot", 
+            line_color="red", 
+            row=2, col=1,
+            annotation=dict(
+                text="Break-even",
+                font=dict(size=10, color="red"),
+                xanchor="right",
+                x=1
+            )
+        )
         
-        # DSCR subplot
+        # DSCR subplot with reference lines
         fig.add_trace(
             go.Scatter(
                 x=df_operating.index,
@@ -408,7 +437,30 @@ def display_operating_metrics_timeseries(deal: Deal, holding_period: int) -> Non
             ),
             row=3, col=1
         )
-        fig.add_hline(y=1.25, line_dash="dash", line_color="red", row=3, col=1)
+        fig.add_hline(
+            y=1.25, 
+            line_dash="dash", 
+            line_color="red", 
+            row=3, col=1,
+            annotation=dict(
+                text="Lender Min (1.25x)",
+                font=dict(size=10, color="red"),
+                xanchor="left",
+                x=0
+            )
+        )
+        fig.add_hline(
+            y=1.0, 
+            line_dash="dot", 
+            line_color="gray", 
+            row=3, col=1,
+            annotation=dict(
+                text="Break-even (1.0x)",
+                font=dict(size=10, color="gray"),
+                xanchor="left",
+                x=0
+            )
+        )
         
         # Update axes
         fig.update_xaxes(title_text="Year", dtick=1, row=3, col=1)
