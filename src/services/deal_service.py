@@ -37,7 +37,6 @@ class AnalysisResult(BaseModel):
     metrics: MetricsBundle
     proforma: Optional[ProForma] = None
     holding_period: int
-    investor_profile: str
 
     class Config:
         arbitrary_types_allowed = True
@@ -262,7 +261,6 @@ class DealService:
         self,
         deal: Deal,
         holding_period: int = 10,
-        investor_profile: str = "balanced",
         include_proforma: bool = True,
     ) -> AnalysisResult:
         """Run comprehensive analysis on a deal.
@@ -270,7 +268,6 @@ class DealService:
         Args:
             deal: The deal to analyze
             holding_period: Investment holding period in years
-            investor_profile: Investor profile for scoring (cash_flow, balanced, appreciation)
             include_proforma: Whether to include full pro-forma in results
             
         Returns:
@@ -280,7 +277,6 @@ class DealService:
         metrics_calc = MetricsCalculator(deal)
         metrics_result = metrics_calc.calculate(
             holding_period=holding_period,
-            investor_profile=investor_profile,
         )
 
         if not metrics_result.success:
@@ -299,21 +295,18 @@ class DealService:
             metrics=metrics_result.data,
             proforma=proforma,
             holding_period=holding_period,
-            investor_profile=investor_profile,
         )
 
     def calculate_metrics(
         self,
         deal: Deal,
         holding_period: int = 10,
-        investor_profile: str = "balanced",
     ) -> CalculatorResult[MetricsBundle]:
         """Calculate financial metrics for a deal.
         
         Args:
             deal: The deal to analyze
             holding_period: Investment holding period in years
-            investor_profile: Investor profile for scoring
             
         Returns:
             CalculatorResult containing MetricsBundle
@@ -321,7 +314,6 @@ class DealService:
         calculator = MetricsCalculator(deal)
         return calculator.calculate(
             holding_period=holding_period,
-            investor_profile=investor_profile,
         )
 
     def calculate_proforma(

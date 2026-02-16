@@ -385,12 +385,6 @@ def profitable_deal(sample_deal) -> Deal:
 # =============================================================================
 
 
-@pytest.fixture(params=["cash_flow", "balanced", "appreciation"])
-def investor_profile(request) -> str:
-    """Parametrized fixture for all investor profiles."""
-    return request.param
-
-
 @pytest.fixture(params=[5, 10, 15, 30])
 def holding_period(request) -> int:
     """Parametrized fixture for common holding periods."""

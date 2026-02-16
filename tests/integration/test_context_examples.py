@@ -552,7 +552,6 @@ class TestContextMDFullAnalysis:
         # Act
         result = calculator.calculate(
             holding_period=10,
-            investor_profile="balanced",
             discount_rate=0.10
         )
         
@@ -567,7 +566,6 @@ class TestContextMDFullAnalysis:
         assert result.data.irr is not None
         assert result.data.npv is not None
         assert result.data.equity_multiple is not None
-        assert result.data.deal_score is not None
     
     def test_proforma_projection(self, context_md_deal):
         """Pro-forma projection succeeds for 10-year hold."""

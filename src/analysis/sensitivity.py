@@ -253,8 +253,7 @@ class SensitivityAnalyzer:
             "irr": metrics.irr.value if metrics.irr else 0,
             "npv": metrics.npv.value if metrics.npv else 0,
             "equity_multiple": metrics.equity_multiple.value if metrics.equity_multiple else 0,
-            "deal_score": metrics.deal_score.value if metrics.deal_score else 0,
             "break_even_ratio": metrics.break_even_ratio.value if metrics.break_even_ratio else 0,
         }
-
+        
         return metric_map.get(metric_name, 0)

@@ -96,34 +96,6 @@ def display_metrics_overview(deal: Deal, metrics: MetricsBundle) -> None:
     """
     st.subheader("Investment Summary")
 
-    # Deal score prominently displayed with tooltip
-    if metrics.deal_score:
-        score = metrics.deal_score.value
-        color = "green" if score >= 70 else "orange" if score >= 50 else "red"
-        
-        col1, col2, col3 = st.columns([1, 3, 1])
-        with col2:
-            st.markdown(
-                f"<h1 style='text-align: center; color: {color};'>Deal Score: {score:.0f}/100</h1>",
-                unsafe_allow_html=True,
-            )
-            st.markdown(
-                f"<p style='text-align: center;'>Based on {metrics.deal_score.metadata['investor_profile']} investor profile</p>",
-                unsafe_allow_html=True,
-            )
-        
-        with col3:
-            deal_score_info = get_metric_info("DEAL_SCORE")
-            if deal_score_info:
-                with st.popover("ℹ️ About Deal Score", use_container_width=False):
-                    st.markdown(f"**{deal_score_info.name}**")
-                    st.write(deal_score_info.tooltip_text)
-                    if deal_score_info.formula:
-                        st.markdown(f"**How it's calculated:**")
-                        st.write(deal_score_info.formula)
-                    if deal_score_info.note:
-                        st.info(deal_score_info.note)
-
     st.subheader("Key Performance Indicators")
 
     # Define performance rating order for sorting (best to worst)
@@ -227,8 +199,6 @@ def display_metrics_comparison(
             row["IRR"] = metrics.irr.formatted_value
         if metrics.equity_multiple:
             row["Equity Multiple"] = metrics.equity_multiple.formatted_value
-        if metrics.deal_score:
-            row["Deal Score"] = f"{metrics.deal_score.value:.0f}"
         data.append(row)
 
     df = pd.DataFrame(data)

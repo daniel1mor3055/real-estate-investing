@@ -27,9 +27,6 @@ class MetricType(str, Enum):
     # Risk Metrics
     BREAK_EVEN_RATIO = "break_even_ratio"
     DEFAULT_RATIO = "default_ratio"
-    
-    # Score
-    DEAL_SCORE = "deal_score"
 
 
 class MetricResult(BaseModel):
@@ -68,7 +65,6 @@ class MetricResult(BaseModel):
             MetricType.NPV,
             MetricType.EQUITY_MULTIPLE,
             MetricType.AVERAGE_ANNUAL_RETURN,
-            MetricType.DEAL_SCORE,
             MetricType.ROE,
             MetricType.AVERAGE_ROE,
         ]
@@ -234,24 +230,7 @@ class MetricResult(BaseModel):
             benchmark_high=benchmark_high,
         )
     
-    @classmethod
-    def create_deal_score(
-        cls, 
-        value: float,
-        investor_profile: str,
-        holding_period: int
-    ) -> "MetricResult":
-        """Create Deal Score metric result."""
-        return cls(
-            metric_type=MetricType.DEAL_SCORE,
-            value=value,
-            formatted_value=f"{value:.1f}/100",
-            holding_period=holding_period,
-            benchmark_low=40,
-            benchmark_target=60,
-            benchmark_high=80,
-            metadata={"investor_profile": investor_profile}
-        )
+<<<<<<< HEAD
     
     @classmethod
     def create_roe(
