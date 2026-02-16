@@ -16,7 +16,6 @@ from ..components.inputs import (
 )
 from ..components.metrics import display_metrics_overview
 from ..components.charts import (
-    display_cash_flow_chart,
     display_proforma_chart,
     display_proforma_table,
     display_sensitivity_heatmap,
@@ -303,8 +302,8 @@ def _display_analysis_results(
     metrics = result.metrics
 
     # Display tabs - Visualizations moved to second position
-    tab1, tab2, tab3, tab4, tab5 = st.tabs(
-        ["Overview", "Visualizations", "Cash Flow", "Pro Forma", "Sensitivity"]
+    tab1, tab2, tab3, tab4 = st.tabs(
+        ["Overview", "Visualizations", "Pro Forma", "Sensitivity"]
     )
 
     with tab1:
@@ -333,19 +332,10 @@ def _display_analysis_results(
             display_proforma_chart(deal, holding_period)
 
     with tab3:
-        _display_cash_flow_analysis(deal)
-
-    with tab4:
         display_proforma_table(deal, holding_period)
 
-    with tab5:
+    with tab4:
         _display_sensitivity_analysis(analysis_service, deal, holding_period)
-
-
-def _display_cash_flow_analysis(deal: Deal):
-    """Display detailed cash flow analysis."""
-    st.subheader("Cash Flow Analysis")
-    display_cash_flow_chart(deal, years=3)
 
 
 def _display_sensitivity_analysis(

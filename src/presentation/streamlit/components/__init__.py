@@ -10,7 +10,6 @@ from .metrics import display_metric_card, display_metrics_overview, display_metr
 from .charts import (
     display_equity_buildup_chart,
     display_income_vs_expenses_chart,
-    display_cash_flow_chart,
 )
 
 __all__ = [
@@ -26,5 +25,4 @@ __all__ = [
     # Chart components
     "display_equity_buildup_chart",
     "display_income_vs_expenses_chart",
-    "display_cash_flow_chart",
 ]

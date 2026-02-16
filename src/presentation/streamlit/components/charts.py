@@ -6,7 +6,7 @@ import plotly.express as px
 import streamlit as st
 
 from ....core.models import Deal
-from ....core.calculators import ProFormaCalculator, CashFlowCalculator
+from ....core.calculators import ProFormaCalculator
 from ....core.calculators.proforma import ProForma
 
 
@@ -84,52 +84,6 @@ def display_income_vs_expenses_chart(df: pd.DataFrame) -> None:
         legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01),
     )
     st.plotly_chart(fig, use_container_width=True)
-
-
-def display_cash_flow_chart(deal: Deal, years: int = 3) -> None:
-    """Display monthly cash flow projection chart.
-    
-    Args:
-        deal: The deal to analyze
-        years: Number of years to project
-    """
-    from ....utils.formatting import format_currency
-
-    calc = CashFlowCalculator(deal)
-    result = calc.calculate(years=years)
-
-    if result.success:
-        df = result.data.to_dataframe()
-
-        fig = px.line(
-            df,
-            x=df.index,
-            y="pre_tax_cash_flow",
-            title=f"Monthly Cash Flow Projection ({years} Years)",
-            labels={"pre_tax_cash_flow": "Cash Flow ($)", "index": "Month"},
-        )
-        fig.add_hline(y=0, line_dash="dash", line_color="red")
-        fig.update_traces(line_color="#10b981")
-        st.plotly_chart(fig, use_container_width=True)
-
-        # Summary stats
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            st.metric(
-                "Average Monthly Cash Flow",
-                format_currency(result.data.average_monthly_cash_flow),
-            )
-        with col2:
-            st.metric(
-                "Year 1 Total",
-                format_currency(result.data.total_year1_cash_flow),
-            )
-        with col3:
-            months_positive = result.data.months_to_positive_cash_flow
-            st.metric(
-                "Months to Positive",
-                f"{months_positive} months" if months_positive > 0 else "Immediate",
-            )
 
 
 def display_proforma_chart(deal: Deal, holding_period: int) -> None:
