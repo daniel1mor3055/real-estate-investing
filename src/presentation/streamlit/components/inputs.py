@@ -133,13 +133,13 @@ def get_property_inputs() -> Dict[str, Any]:
             "Closing Costs",
             value=get_config_value(config, "property.closing_costs", 7500),
             step=500,
-            help="💡 Legal fees, title insurance, escrow, transfer taxes, lender fees. Always landlord's expense at purchase. Example: If you paid $8,000 in title insurance, escrow fees, and attorney fees when buying the property, enter $8,000",
+            help="Fees paid at purchase: title insurance, escrow, legal fees, transfer taxes. Always paid by buyer/landlord. Example: $8,000 total closing costs → enter $8,000",
         )
         rehab_budget = st.number_input(
             "Rehab Budget",
             value=get_config_value(config, "property.rehab_budget", 15000),
             step=1000,
-            help="💡 Renovation and repair costs before first tenant moves in. Always landlord's expense. Example: Kitchen remodel $15,000 + new HVAC $8,000 + painting $2,000 = $25,000",
+            help="Renovation costs before tenants move in. Always paid by landlord. Example: Kitchen $15k + HVAC $8k + Paint $2k = $25k total",
         )
 
     with col2:
@@ -581,7 +581,7 @@ def get_income_inputs() -> Dict[str, Any]:
         min_percentage=0,
         max_percentage=20,
         currency_symbol=currency_symbol,
-        help_text=f"💡 Percentage of time property sits empty (no rent collected). Always applies regardless of who pays other costs. Example: If you expect 1 empty month per year, enter 8.33% (1/12 months). Vacancy loss on {currency_symbol}{gross_potential_rent:,.0f}/month GPR",
+        help_text=f"% of time with no tenant (no rent). Always include this. Example: 1 empty month per year = 8.3% (1÷12)",
     )
     
     # Dual-input for credit loss
@@ -594,7 +594,7 @@ def get_income_inputs() -> Dict[str, Any]:
         min_percentage=0,
         max_percentage=10,
         currency_symbol=currency_symbol,
-        help_text=f"💡 Percentage of rent lost to non-paying tenants, evictions, bad debt. Always applies - tenant responsibility doesn't prevent non-payment. Example: Industry standard is 2-3%. If you expect to lose $200/year on $10,000 annual rent, enter 2%. Credit loss on {currency_symbol}{gross_potential_rent:,.0f}/month GPR",
+        help_text=f"Lost rent from non-paying tenants, evictions, bad debt. Always include this. Typical: 2-3%",
     )
     
     annual_increase = st.number_input(
@@ -660,13 +660,13 @@ def get_expenses_inputs() -> Dict[str, Any]:
             "Annual Property Tax",
             value=get_config_value(config, "expenses.property_tax", 3600),
             step=100,
-            help="💡 Yearly property taxes assessed by municipality. Enter ONLY if landlord pays. Many residential leases = landlord pays, some triple-net commercial = tenant pays. Example: Tax bill shows $6,500/year and your lease doesn't pass this to tenant: enter $6,500. If NNN lease where tenant pays taxes: enter $0",
+            help="Yearly property taxes. Enter ONLY if YOU pay (not tenant). Residential leases: usually landlord pays. NNN/Commercial: often tenant pays → enter $0",
         )
         insurance = st.number_input(
             "Annual Insurance",
             value=get_config_value(config, "expenses.insurance", 1200),
             step=100,
-            help="💡 Landlord's property/liability insurance (not tenant's renters insurance). Enter ONLY if landlord pays (almost always yes). Example: Your landlord policy is $1,200/year: enter $1,200. Don't include tenant's renters insurance (that's their cost)",
+            help="Your property/liability insurance (NOT tenant's renters insurance). Almost always landlord-paid. Example: Your policy is $1,200/year → enter $1,200",
         )
 
     with col2:
@@ -674,13 +674,13 @@ def get_expenses_inputs() -> Dict[str, Any]:
             "Monthly HOA",
             value=get_config_value(config, "expenses.hoa", 0),
             step=25,
-            help="💡 Homeowners Association monthly/annual fees. Enter ONLY if landlord pays. If tenant pays, enter $0. Example: Condo HOA is $250/month paid by you (landlord): enter $3,000/year. If lease says tenant pays HOA: enter $0",
+            help="HOA fees. Enter ONLY if YOU pay (not tenant). Example: Condo HOA $250/month paid by you → enter $250. If tenant pays → enter $0",
         )
         utilities = st.number_input(
             "Monthly Utilities (Landlord Paid)",
             value=get_config_value(config, "expenses.utilities", 0),
             step=25,
-            help="💡 Water, sewer, trash, gas, electric, internet. Enter ONLY utilities landlord pays per lease. Example: You pay water ($50/mo) and trash ($30/mo), tenant pays electric/gas: enter $80/month or $960/year. If tenant pays all utilities: enter $0",
+            help="Water, sewer, trash, gas, electric. Enter ONLY what YOU pay per lease. Example: You pay water $50 + trash $30, tenant pays rest → enter $80",
         )
 
     st.subheader("Variable Expenses (% of Income)")
@@ -789,7 +789,7 @@ def get_market_inputs() -> Dict[str, Any]:
             max_value=15.0,
             step=0.5,
             format="%.1f",
-            help="💡 Realtor commission, closing costs when you sell. Always landlord's expense at sale. Example: Realtor charges 6% commission. On $500k sale, that's $30,000. Enter 6% or the dollar amount"
+            help="Realtor commission + closing costs when you sell. Always paid by seller. Typical: 6% commission. Example: 6% of $500k sale = $30k"
         )
     
     with col3:
