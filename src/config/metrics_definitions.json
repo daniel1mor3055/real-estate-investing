@@ -13,7 +13,7 @@
       "high": 40000
     },
     "category": "property_unlevered",
-    "tooltipText": "NOI is the property's annual profit after operating expenses but before the mortgage and taxes. It's the core measure of operational performance and is used for cap rate valuation and lender coverage tests."
+    "tooltipText": "**What it measures:** NOI is the property's **pure operating profit** — how much money the building itself produces **before** you think about the mortgage or taxes. It's the \"engine power\" of the property.\n\n**How to think about it:** Imagine the property is a little business (like a coffee shop). NOI answers: *\"After I pay staff, supplies, rent utilities, repairs, management… how much profit does the shop generate?\"* But it **ignores** how you financed it.\n\n**Mini example:**\n- Rent collected (after vacancy): **$200,000**\n- Operating expenses: **$120,000**\n- **NOI = $80,000**\n\nThat $80k is the building's \"operating profit\" — whether you paid all-cash or used a loan."
   },
   "CAP_RATE": {
     "name": "Capitalization Rate",
@@ -29,7 +29,7 @@
       "high": 0.09
     },
     "category": "property_unlevered",
-    "tooltipText": "Cap rate is NOI divided by property value — an unlevered yield implied by the current income and price. It's mainly a market comparison and valuation tool, not a full return metric."
+    "tooltipText": "**What it measures:** Cap Rate is the property's **unlevered yield** — the return you'd get **if you bought it with all cash**, based on NOI.\n\n**How to think about it:** Cap Rate is like the property's \"price tag interest rate.\" It helps answer: *\"Am I paying a reasonable price for the income this building produces?\"* It's heavily used to compare similar properties in the same market.\n\n**Mini example:**\n- NOI: **$80,000**\n- Price: **$2,000,000**\n- Cap Rate = 80,000 / 2,000,000 = **4%**\n\nMeaning: *if you bought it all-cash, the building \"yields\" about 4% per year from operations.*"
   },
   "CASH_FLOW": {
     "name": "Cash Flow",
@@ -41,7 +41,7 @@
     "higherIsBetter": true,
     "benchmarks": null,
     "category": "deal_levered",
-    "tooltipText": "Year-1 cash flow is the property's remaining pre-tax profit after operating expenses and debt payments are made. Positive cash flow generally means the deal can support itself day-to-day.",
+    "tooltipText": "**What it measures:** Cash Flow is the **real money left in your pocket** after the building runs **and** after you pay the mortgage (principal + interest).\n\n**How to think about it:** If NOI is the engine, Cash Flow is what's left **after the bank takes its cut**. It answers: *\"After everything is paid, do I personally take money home each year, or do I need to feed the property money?\"*\n\n**Mini example:**\n- NOI: **$80,000**\n- Annual mortgage payments: **$95,000**\n- Cash Flow = 80,000 − 95,000 = **–$15,000**\n\nMeaning: you're short $15k per year — you must cover it from your own funds.",
     "note": "This is pre-tax cash flow before reserves"
   },
   "COC_RETURN": {
@@ -58,7 +58,7 @@
       "high": 0.15
     },
     "category": "deal_levered",
-    "tooltipText": "Cash-on-cash return is annual pre-tax cash flow ÷ total cash invested. It measures the first-year cash yield on your actual out-of-pocket investment and is heavily influenced by leverage."
+    "tooltipText": "**What it measures:** CoC tells you the **annual cash return** on the **actual cash you invested** (down payment, closing costs, rehab, etc.).\n\n**How to think about it:** CoC answers a very practical investor question: *\"If I put in $1 today, how many cents do I get back this year as spendable cash?\"* It's like the deal's \"Year-1 paycheck\" on your equity.\n\n**Mini example:**\n- Total cash you invested: **$500,000**\n- Annual cash flow: **$25,000**\n- CoC = 25,000 / 500,000 = **5%**\n\nMeaning: your invested cash is producing about 5% per year in cash you can actually take out (before tax)."
   },
   "DSCR": {
     "name": "Debt Service Coverage Ratio",
@@ -74,7 +74,7 @@
       "high": 2.0
     },
     "category": "risk",
-    "tooltipText": "DSCR is NOI ÷ annual debt service — how many times the property's operating income covers the mortgage payments. Higher DSCR means more cushion and generally lower lender/investor risk.",
+    "tooltipText": "**What it measures:** DSCR is the property's **loan safety cushion** — how comfortably the building's NOI can pay the mortgage payments.\n\n**How to think about it (very vivid):** Picture the mortgage as a monthly \"boss fight\" you must win. DSCR tells you how strong your character is going into that fight:\n- **DSCR = 1.0x** → you barely survive. You cover the mortgage exactly, **no room for error**.\n- **DSCR = 1.25x** → you have a 25% cushion if rents drop or expenses spike.\n- **DSCR < 1.0x** → the property can't pay the mortgage from operations; you must subsidize it.\n\n**Mini example:**\n- NOI: **$80,000**\n- Annual mortgage payments: **$100,000**\n- DSCR = 80,000 / 100,000 = **0.80x**\n\nMeaning: the property covers only 80% of the loan payment — it's underwater from a lender-risk perspective.",
     "interpretation": {
       "below_1": "Property doesn't generate enough to cover mortgage (red flag)",
       "at_1": "Break-even (risky)",
@@ -97,7 +97,7 @@
       "high": 12.0
     },
     "category": "property_unlevered",
-    "tooltipText": "GRM is price ÷ gross annual rent. It's a quick screening metric that ignores vacancy and expenses, so it's best used only for early comparisons.",
+    "tooltipText": "**What it measures:** GRM is a quick screening tool that shows how expensive the property is relative to its gross rent. It's rough and ignores expenses, but useful for rapid comparisons.\n\n**How to think about it:** GRM answers: *\"How many years of gross rent would it take to pay off the purchase price?\"* Lower is generally better (cheaper price per rent dollar).\n\n**Mini example:**\n- Purchase Price: **$400,000**\n- Gross Annual Rent: **$50,000**\n- GRM = 400,000 / 50,000 = **8.0**\n\nMeaning: the property costs 8 years' worth of gross rent. Compare this to similar properties in the area to gauge if you're paying a fair price.\n\n**Important limitation:** GRM ignores vacancy, expenses, and financing — it's only for initial screening, not serious analysis.",
     "note": "Lower GRM = better value per rent dollar"
   },
   "IRR": {
@@ -114,7 +114,7 @@
       "high": 0.25
     },
     "category": "lifecycle",
-    "tooltipText": "IRR is the annualized return rate that makes the investment's NPV equal zero, considering all cash flows and the sale. It's a time-weighted metric that's best read alongside equity multiple or NPV.",
+    "tooltipText": "**What it measures:** IRR is the deal's **annualized growth rate** — the single \"interest rate\" that best describes how fast your invested money grew, considering *when* cash flows happened and the final sale.\n\n**How to think about it (IRR-style):** IRR turns the whole deal into a \"magic bank account\" story:\n- You deposit money when you invest.\n- You withdraw money when the property pays you cash flow.\n- You withdraw a big amount at the sale.\n\nIRR is the interest rate where, after the last withdrawal, the account ends at **exactly $0** — meaning the deal's cash flows perfectly match that rate.\n\n**Mini example:**\nIf IRR is **7%**, it means: *\"The deal behaved like your invested capital was compounding at ~7% per year, given the timing of all cash in/out.\"*\n\n**Why it matters:** IRR captures both the magnitude of returns AND the timing. Getting $100k back in 3 years is very different from getting it back in 10 years — IRR accounts for that.",
     "note": "Best used with Equity Multiple to show both speed and magnitude of returns"
   },
   "NPV": {
@@ -127,7 +127,7 @@
     "higherIsBetter": true,
     "benchmarks": null,
     "category": "lifecycle",
-    "tooltipText": "NPV is the value today of all future cash flows discounted at your required return, minus the initial investment. Positive NPV means the deal is expected to outperform your hurdle rate.",
+    "tooltipText": "**What it measures:** NPV shows you the **value today** of all the deal's future cash flows and sale proceeds, after discounting them back at your required rate of return.\n\n**How to think about it:** NPV answers: *\"If I demanded a specific return (like 10%), would this deal give me MORE than that (positive NPV) or LESS (negative NPV)?\"*\n\n**Mini example:**\n- You want a 10% annual return (your \"hurdle rate\").\n- The property will generate $500k in total future cash (discounted to today = $380k in \"today dollars\").\n- You invest $300k upfront.\n- NPV = $380k - $300k = **+$80k**\n\nMeaning: This deal is worth $80k MORE than your 10% hurdle rate. It's a good investment by your standards.\n\n**Key insight:** NPV is HIGHLY dependent on your chosen discount rate. A 10% hurdle vs. a 15% hurdle can completely flip whether a deal looks good or bad.",
     "note": "Heavily depends on chosen discount rate"
   },
   "EQUITY_MULTIPLE": {
@@ -144,7 +144,7 @@
       "high": 3.0
     },
     "category": "lifecycle",
-    "tooltipText": "Equity multiple is total cash returned ÷ total equity invested. It shows overall cash profit but doesn't account for how long it takes — pair it with IRR for timing.",
+    "tooltipText": "**What it measures:** Equity Multiple is the simplest \"money machine\" metric: **how many dollars you got back for each $1 you invested**, across the entire deal (cash flows + sale).\n\n**How to think about it:** If you put a dollar into a vending machine, EM answers: *\"How many dollars came out before the machine shut down?\"* It ignores *speed* (time) — it only measures *total multiplication*.\n\n**Mini example:**\n- You invest **$1,000,000** total equity over time\n- Over the hold + sale, you receive **$2,990,000** back\n- EM = 2,990,000 / 1,000,000 = **2.99x**\n\nMeaning: you got your original $1 back, plus $1.99 profit — total $2.99 per $1 invested.\n\n**Important nuance (super common confusion):** If you have negative cash flow years (you inject money), that counts as **additional equity invested** (it increases the denominator), not \"negative distributions.\" So feeding a property extra cash will LOWER your Equity Multiple.",
     "interpretation": {
       "below_1": "Losing money",
       "at_1": "Break-even (no profit)",
@@ -167,7 +167,7 @@
       "high": 0.95
     },
     "category": "risk",
-    "tooltipText": "Break-even ratio is (operating expenses + debt service) ÷ gross operating income. Lower is safer because the property needs less income to cover all required payments.",
+    "tooltipText": "**What it measures (plain-English):** Break Even Ratio asks: **\"How close am I to the line where income just barely covers all required costs?\"** It's a *survival metric* — similar spirit to DSCR's \"1.0x is break-even\" concept.\n\n**How to think about it (why 129.98% looks scary):** This ratio is easiest to read like a \"budget pie\":\n- **100%** = every dollar of income is used to pay bills → **zero** leftover\n- **< 100%** = you have breathing room\n- **> 100%** = your costs are bigger than your income → you must feed the property money\n\n**Mini example:**\nSay the property brings in **$100,000** of effective income.\n- If all-in costs are **$85,000**, break-even ratio is **85%** → you keep ~15% cushion.\n- If all-in costs are **$130,000**, break-even ratio is **130%** → you are short ~30% of your income.\n\n**In other words:** a **129.98%** break-even ratio means: *\"For every $1.00 the property earns, it needs about $1.30 to cover costs.\"* That's why it's flagged \"poor\" in the UI.",
     "interpretation": {
       "below_70": "Very safe (lots of cushion)",
       "70_to_85": "Good cushion",
@@ -191,7 +191,7 @@
       "high": 0.15
     },
     "category": "deal_levered",
-    "tooltipText": "ROE measures how efficiently your accumulated equity is working. As equity builds through appreciation and principal paydown, ROE can decline if cash flow doesn't grow proportionally—signaling potential refinance or sale opportunities.",
+    "tooltipText": "**What it measures:** ROE measures **how efficiently your equity is working** to generate cash flow. Unlike Cash-on-Cash (which uses your *original* investment), ROE uses your *current* equity, which grows over time through appreciation and principal paydown.\n\n**How to think about it:** ROE answers: *\"Given how much equity I have built up in this property right now, is that equity working hard enough, or should I pull it out (refinance/sell) and redeploy it elsewhere?\"*\n\n**Mini example:**\n- **Year 1:** You have $500k equity, earn $25k cash flow → ROE = 5%\n- **Year 5:** You have $700k equity (appreciation + paydown), still earn $25k → ROE = 3.6%\n\nYour equity *grew*, but your cash flow didn't keep pace — your money is now working *less efficiently*. This might signal it's time to refinance or sell.\n\n**Why it matters:** ROE declining over time is common and normal. It tells you when your equity could earn more somewhere else. If you can get 10% elsewhere but your ROE is 3%, you're leaving money on the table.",
     "note": "ROE declining over time may indicate opportunity to refinance or redeploy capital"
   },
   "AVERAGE_ROE": {
@@ -208,7 +208,7 @@
       "high": 0.18
     },
     "category": "lifecycle",
-    "tooltipText": "Average ROE shows how efficiently your equity worked over the entire holding period. Compare this to your hurdle rate or alternative investment returns to evaluate if the property is the best use of your capital.",
+    "tooltipText": "**What it measures:** Average ROE is the **mean Return on Equity** across your entire holding period. It shows how efficiently your equity worked *on average* throughout the investment lifecycle.\n\n**How to think about it:** Average ROE answers: *\"Across all the years I held this property, what was the typical annual return on my accumulated equity?\"* It smooths out the year-to-year ups and downs.\n\n**Mini example:**\n- Year 1 ROE: **8%**\n- Year 2 ROE: **7%**\n- Year 3 ROE: **6%**\n- Year 4 ROE: **5%**\n- Average ROE = **(8 + 7 + 6 + 5) / 4 = 6.5%**\n\nMeaning: Over 4 years, your equity earned an average of 6.5% per year.\n\n**Why it matters:** Compare Average ROE to your **opportunity cost** or **hurdle rate**. If you could get 10% returns in the stock market or another property with similar risk, but your Average ROE is 6.5%, this property might not be your best use of capital. Average ROE helps you decide: *\"Should I hold, refinance, or sell?\"*",
     "note": "Benchmark against your opportunity cost or required return"
   }
 }
