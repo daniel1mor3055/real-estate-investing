@@ -195,16 +195,37 @@
     "note": "Configurable based on investment strategy"
   },
   "ROE": {
-    "name": "Return on Equity",
+    "name": "Return on Equity (Year 1)",
     "shortName": "ROE",
-    "definition": "ROE measures how efficiently the property's current equity is generating returns (often annual cash flow divided by current equity). It's useful for hold/sell decisions when equity has grown but cash flow hasn't.",
-    "formula": "Annual Cash Flow ÷ Current Equity (or include appreciation + principal paydown)",
-    "includes": ["Current equity", "Annual returns"],
-    "excludes": ["Initial investment (use CoC for that)"],
+    "definition": "ROE measures annual cash flow generated relative to the investor's current equity position in the property. Unlike Cash-on-Cash (which uses original investment), ROE uses average equity for the year, accounting for appreciation and principal paydown.",
+    "formula": "Annual Pre-Tax Cash Flow ÷ Average Equity",
+    "includes": ["Property appreciation", "Principal paydown", "Current market value"],
+    "excludes": ["Sale proceeds", "Refinancing"],
     "higherIsBetter": true,
-    "benchmarks": null,
+    "benchmarks": {
+      "low": 0.05,
+      "target": 0.10,
+      "high": 0.15
+    },
+    "category": "deal_levered",
+    "tooltipText": "ROE measures how efficiently your accumulated equity is working. As equity builds through appreciation and principal paydown, ROE can decline if cash flow doesn't grow proportionally—signaling potential refinance or sale opportunities.",
+    "note": "ROE declining over time may indicate opportunity to refinance or redeploy capital"
+  },
+  "AVERAGE_ROE": {
+    "name": "Average Return on Equity",
+    "shortName": "Avg ROE",
+    "definition": "Average ROE is the mean Return on Equity across the entire holding period, showing the overall efficiency of equity usage throughout the investment lifecycle.",
+    "formula": "Average of (Annual Cash Flow ÷ Average Equity) for all years",
+    "includes": ["All years in holding period", "Property appreciation", "Principal paydown"],
+    "excludes": ["Year 0 initial investment", "Sale proceeds"],
+    "higherIsBetter": true,
+    "benchmarks": {
+      "low": 0.08,
+      "target": 0.12,
+      "high": 0.18
+    },
     "category": "lifecycle",
-    "tooltipText": "ROE measures how efficiently the property's current equity is generating returns (often annual cash flow divided by current equity). It's useful for hold/sell decisions when equity has grown but cash flow hasn't.",
-    "note": "Compare to alternative investment returns for hold/sell decisions"
+    "tooltipText": "Average ROE shows how efficiently your equity worked over the entire holding period. Compare this to your hurdle rate or alternative investment returns to evaluate if the property is the best use of your capital.",
+    "note": "Benchmark against your opportunity cost or required return"
   }
 }

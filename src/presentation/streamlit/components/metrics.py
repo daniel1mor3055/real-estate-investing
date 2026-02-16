@@ -129,37 +129,40 @@ def display_metrics_overview(deal: Deal, metrics: MetricsBundle) -> None:
     # Define performance rating order for sorting (best to worst)
     rating_order = {"excellent": 0, "good": 1, "fair": 2, "poor": 3, "unknown": 4}
 
-    # Organize metrics by category and sort by performance
-    profitability_metrics = sorted(
-        [metrics.noi_year1, metrics.cap_rate, metrics.cash_flow_year1],
+    # Collect all metrics and sort by performance
+    all_metrics = [
+        metrics.noi_year1,
+        metrics.cap_rate,
+        metrics.cash_flow_year1,
+        metrics.coc_return,
+        metrics.dscr,
+        metrics.break_even_ratio,
+    ]
+    
+    # Add advanced metrics if available
+    if metrics.roe_year1:
+        all_metrics.append(metrics.roe_year1)
+    if metrics.average_roe:
+        all_metrics.append(metrics.average_roe)
+    if metrics.irr:
+        all_metrics.append(metrics.irr)
+    if metrics.equity_multiple:
+        all_metrics.append(metrics.equity_multiple)
+    
+    # Sort all metrics by performance
+    sorted_metrics = sorted(
+        all_metrics,
         key=lambda m: rating_order.get(m.performance_rating.lower(), 4),
     )
-
-    return_metrics = sorted(
-        [m for m in [metrics.coc_return, metrics.irr, metrics.equity_multiple] if m],
-        key=lambda m: rating_order.get(m.performance_rating.lower(), 4),
-    )
-
-    risk_metrics = sorted(
-        [m for m in [metrics.dscr, metrics.break_even_ratio] if m],
-        key=lambda m: rating_order.get(m.performance_rating.lower(), 4),
-    )
-
+    
+    # Create 3 columns and distribute metrics evenly
     col1, col2, col3 = st.columns(3)
-
-    with col1:
-        st.markdown("**Profitability Metrics**")
-        for metric in profitability_metrics:
-            display_metric_card(metric)
-
-    with col2:
-        st.markdown("**Return Metrics**")
-        for metric in return_metrics:
-            display_metric_card(metric)
-
-    with col3:
-        st.markdown("**Risk Metrics**")
-        for metric in risk_metrics:
+    columns = [col1, col2, col3]
+    
+    # Distribute metrics across columns in a grid pattern
+    for idx, metric in enumerate(sorted_metrics):
+        col_idx = idx % 3
+        with columns[col_idx]:
             display_metric_card(metric)
 
 
@@ -216,6 +219,10 @@ def display_metrics_comparison(
             "Cash-on-Cash": metrics.coc_return.formatted_value,
             "DSCR": metrics.dscr.formatted_value,
         }
+        if metrics.roe_year1:
+            row["ROE Year 1"] = metrics.roe_year1.formatted_value
+        if metrics.average_roe:
+            row["Avg ROE"] = metrics.average_roe.formatted_value
         if metrics.irr:
             row["IRR"] = metrics.irr.formatted_value
         if metrics.equity_multiple:
