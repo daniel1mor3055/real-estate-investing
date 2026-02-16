@@ -41,6 +41,10 @@ class ProFormaYear(BaseModel):
     equity_from_appreciation: float = 0
     equity_from_principal_paydown: float = 0
     
+    # ROE Metrics
+    average_equity: float = 0  # Average of beginning and ending equity
+    roe: float = 0  # Return on Equity for this year
+    
     # Cumulative Metrics
     cumulative_cash_flow: float = 0
     cumulative_principal_paid: float = 0
@@ -100,6 +104,7 @@ class ProFormaCalculator(Calculator):
         proforma_years = []
         cumulative_cash_flow = 0
         cumulative_principal = 0
+        previous_equity = 0  # Track previous year's equity for ROE calculation
         
         # Year 0 - Initial Investment
         year_0 = ProFormaYear(
@@ -110,6 +115,7 @@ class ProFormaCalculator(Calculator):
             total_equity=self.deal.property.purchase_price - self.deal.financing.loan_amount,
         )
         proforma_years.append(year_0)
+        previous_equity = year_0.total_equity
         
         # Years 1 through N
         for year in range(1, years + 1):
@@ -117,7 +123,8 @@ class ProFormaCalculator(Calculator):
                 year, 
                 amort_schedule, 
                 cumulative_cash_flow,
-                cumulative_principal
+                cumulative_principal,
+                previous_equity
             )
             
             # Update cumulative values
@@ -129,6 +136,7 @@ class ProFormaCalculator(Calculator):
                 year_data.cumulative_principal_paid = cumulative_principal
             
             proforma_years.append(year_data)
+            previous_equity = year_data.total_equity
         
         proforma = ProForma(
             years=proforma_years,
@@ -145,7 +153,8 @@ class ProFormaCalculator(Calculator):
         year: int, 
         amort_schedule: pd.DataFrame,
         cumulative_cash_flow: float,
-        cumulative_principal: float
+        cumulative_principal: float,
+        previous_equity: float
     ) -> ProFormaYear:
         """Calculate financials for a specific year."""
         # Income projections
@@ -302,6 +311,24 @@ class ProFormaCalculator(Calculator):
         logger.info(f"  Total Equity = {property_value:.2f} - {loan_balance:.2f} = {total_equity:.2f}")
         logger.info(f"    (Appreciation: {equity_from_appreciation:.2f}, Principal Paydown: {equity_from_principal:.2f})")
         
+        # ROE Calculation
+        average_equity = (previous_equity + total_equity) / 2
+        roe = cash_flow / average_equity if average_equity > 0 else 0
+        
+        logger.info(f"\n📊 RETURN ON EQUITY (ROE):")
+        logger.info(f"  Previous Year Equity = {previous_equity:.2f}")
+        logger.info(f"  Current Year Equity = {total_equity:.2f}")
+        logger.info(f"  Average Equity = ({previous_equity:.2f} + {total_equity:.2f}) / 2 = {average_equity:.2f}")
+        logger.info(f"  Annual Pre-Tax Cash Flow = {cash_flow:.2f}")
+        logger.info(f"  ➡️  ROE = {cash_flow:.2f} / {average_equity:.2f} = {roe:.2%}")
+        
+        if roe > 0:
+            logger.info(f"  ✅ Positive return on equity: {roe:.2%}")
+        elif roe == 0:
+            logger.info(f"  ⚠️  Break-even: No return on equity")
+        else:
+            logger.info(f"  ❌ Negative return: Equity is losing {abs(roe):.2%}")
+        
         logger.info(f"{'='*90}\n")
         
         return ProFormaYear(
@@ -322,4 +349,6 @@ class ProFormaCalculator(Calculator):
             total_equity=total_equity,
             equity_from_appreciation=equity_from_appreciation,
             equity_from_principal_paydown=equity_from_principal,
+            average_equity=average_equity,
+            roe=roe,
         ) 

@@ -106,6 +106,8 @@ def _render_config_management(config_loader: ConfigLoader):
                     config_loaded = config_loader.load_configuration(config_file)
                     if config_loaded:
                         st.session_state["loaded_config"] = config_loaded
+                        if "current_deal" in st.session_state:
+                            del st.session_state["current_deal"]
                         st.success(f"Loaded configuration: {config_file}")
                         st.rerun()
                 except Exception as e:
@@ -114,6 +116,8 @@ def _render_config_management(config_loader: ConfigLoader):
         if st.button("Clear Config"):
             if "loaded_config" in st.session_state:
                 del st.session_state["loaded_config"]
+                if "current_deal" in st.session_state:
+                    del st.session_state["current_deal"]
                 st.success("Configuration cleared")
                 st.rerun()
 
@@ -265,10 +269,22 @@ def _render_analysis_tab(
             market_inputs,
         )
 
-        # Store in session state
+        # Store in session state so results persist across widget interactions
         st.session_state["current_deal"] = deal
 
         # Run and display analysis
+        _display_analysis_results(
+            deal_service,
+            analysis_service,
+            deal,
+            holding_period,
+            investor_profile,
+            show_details,
+        )
+    elif "current_deal" in st.session_state:
+        # Re-display analysis when user interacts with widgets (e.g. sensitivity sliders)
+        # Without this, moving sliders triggers a rerun and the analysis tabs would disappear
+        deal = st.session_state["current_deal"]
         _display_analysis_results(
             deal_service,
             analysis_service,
@@ -346,8 +362,15 @@ def _display_sensitivity_analysis(
             ["purchase_price", "rent", "vacancy_rate", "interest_rate", "appreciation"],
             index=0,
             format_func=lambda x: x.replace("_", " ").title(),
+            key="sensitivity_var1",
         )
-        var1_range = st.slider(f"{var1.replace('_', ' ').title()} Range (%)", -20, 20, (-10, 10))
+        var1_range = st.slider(
+            f"{var1.replace('_', ' ').title()} Range (%)",
+            -20,
+            20,
+            (-10, 10),
+            key="sensitivity_var1_range",
+        )
 
     with col2:
         var2 = st.selectbox(
@@ -355,8 +378,15 @@ def _display_sensitivity_analysis(
             ["purchase_price", "rent", "vacancy_rate", "interest_rate", "appreciation"],
             index=1,
             format_func=lambda x: x.replace("_", " ").title(),
+            key="sensitivity_var2",
         )
-        var2_range = st.slider(f"{var2.replace('_', ' ').title()} Range (%)", -20, 20, (-10, 10))
+        var2_range = st.slider(
+            f"{var2.replace('_', ' ').title()} Range (%)",
+            -20,
+            20,
+            (-10, 10),
+            key="sensitivity_var2_range",
+        )
 
     target_metric = st.selectbox(
         "Target Metric",

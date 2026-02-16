@@ -27,6 +27,8 @@ class MetricsBundle(BaseModel):
     irr: Optional[MetricResult] = None
     npv: Optional[MetricResult] = None
     equity_multiple: Optional[MetricResult] = None
+    roe_year1: Optional[MetricResult] = None
+    average_roe: Optional[MetricResult] = None
     
     # Deal Score
     deal_score: Optional[MetricResult] = None
@@ -359,10 +361,59 @@ class MetricsCalculator(Calculator):
         
         em_metric = MetricResult.create_equity_multiple(equity_multiple, holding_period)
         
+        # ROE Calculation with detailed logging
+        logger.info(f"\n{'='*90}")
+        logger.info(f"📊 RETURN ON EQUITY (ROE) ANALYSIS | Deal: {self.deal.deal_id}")
+        logger.info(f"{'='*90}")
+        
+        # Get Year 1 ROE from proforma
+        year_1_row = df.loc[1]
+        roe_year1_value = year_1_row['roe']
+        
+        logger.info(f"\n💵 YEAR 1 ROE:")
+        logger.info(f"  Year 1 Cash Flow = ${year_1_row['pre_tax_cash_flow']:,.2f}")
+        logger.info(f"  Year 1 Average Equity = ${year_1_row['average_equity']:,.2f}")
+        logger.info(f"  ➡️  Year 1 ROE = ${year_1_row['pre_tax_cash_flow']:,.2f} / ${year_1_row['average_equity']:,.2f} = {roe_year1_value:.2%}")
+        
+        # Calculate average ROE across all years
+        roe_values = df.loc[1:, 'roe']  # Exclude year 0
+        avg_roe_value = roe_values.mean()
+        
+        logger.info(f"\n📈 AVERAGE ROE (Years 1-{holding_period}):")
+        logger.info(f"  Average ROE across {holding_period} years = {avg_roe_value:.2%}")
+        
+        # Show ROE trend
+        logger.info(f"\n📊 ROE TREND OVER TIME:")
+        for year in [1, 2, 3, 5, 10, holding_period]:
+            if year <= holding_period and year in df.index:
+                year_roe = df.loc[year, 'roe']
+                logger.info(f"    Year {year:2d}: {year_roe:>7.2%}")
+        
+        logger.info(f"\n💡 ROE INTERPRETATION:")
+        logger.info(f"  ROE measures how efficiently your equity is working each year.")
+        logger.info(f"  As equity builds (through appreciation + principal paydown), ROE may decline")
+        logger.info(f"  if cash flow doesn't grow proportionally. This can signal opportunities to")
+        logger.info(f"  refinance or sell and redeploy capital into higher-yielding investments.")
+        
+        if avg_roe_value < 0.08:
+            logger.info(f"\n  ⚠️  BELOW TARGET: Average ROE of {avg_roe_value:.2%} is below typical target (8-12%)")
+            logger.info(f"  Consider: Refinancing to extract equity or selling to redeploy capital")
+        elif avg_roe_value >= 0.12:
+            logger.info(f"\n  ✅ STRONG PERFORMANCE: Average ROE of {avg_roe_value:.2%} indicates efficient equity usage")
+        else:
+            logger.info(f"\n  ✅ ACCEPTABLE: Average ROE of {avg_roe_value:.2%} is within normal range (8-12%)")
+        
+        logger.info(f"{'='*90}\n")
+        
+        roe_year1_metric = MetricResult.create_roe(roe_year1_value, year=1)
+        average_roe_metric = MetricResult.create_average_roe(avg_roe_value, holding_period)
+        
         return {
             "irr": irr_metric,
             "npv": npv_metric,
-            "equity_multiple": em_metric
+            "equity_multiple": em_metric,
+            "roe_year1": roe_year1_metric,
+            "average_roe": average_roe_metric,
         }
     
     def _calculate_deal_score(

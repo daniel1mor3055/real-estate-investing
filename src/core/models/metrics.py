@@ -21,6 +21,8 @@ class MetricType(str, Enum):
     NPV = "npv"
     EQUITY_MULTIPLE = "equity_multiple"
     AVERAGE_ANNUAL_RETURN = "average_annual_return"
+    ROE = "roe"
+    AVERAGE_ROE = "average_roe"
     
     # Risk Metrics
     BREAK_EVEN_RATIO = "break_even_ratio"
@@ -67,6 +69,8 @@ class MetricResult(BaseModel):
             MetricType.EQUITY_MULTIPLE,
             MetricType.AVERAGE_ANNUAL_RETURN,
             MetricType.DEAL_SCORE,
+            MetricType.ROE,
+            MetricType.AVERAGE_ROE,
         ]
         
         # For some metrics, lower is better
@@ -247,6 +251,46 @@ class MetricResult(BaseModel):
             benchmark_target=60,
             benchmark_high=80,
             metadata={"investor_profile": investor_profile}
+        )
+    
+    @classmethod
+    def create_roe(
+        cls, 
+        value: float,
+        year: int = 1,
+        benchmark_low: float = 0.05,
+        benchmark_target: float = 0.10,
+        benchmark_high: float = 0.15
+    ) -> "MetricResult":
+        """Create Return on Equity (ROE) metric result."""
+        return cls(
+            metric_type=MetricType.ROE,
+            value=value,
+            formatted_value=f"{value:.2%}",
+            year=year,
+            benchmark_low=benchmark_low,
+            benchmark_target=benchmark_target,
+            benchmark_high=benchmark_high,
+        )
+    
+    @classmethod
+    def create_average_roe(
+        cls, 
+        value: float,
+        holding_period: int,
+        benchmark_low: float = 0.08,
+        benchmark_target: float = 0.12,
+        benchmark_high: float = 0.18
+    ) -> "MetricResult":
+        """Create Average ROE metric result."""
+        return cls(
+            metric_type=MetricType.AVERAGE_ROE,
+            value=value,
+            formatted_value=f"{value:.2%}",
+            holding_period=holding_period,
+            benchmark_low=benchmark_low,
+            benchmark_target=benchmark_target,
+            benchmark_high=benchmark_high,
         )
     
     class Config:
