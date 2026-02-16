@@ -133,13 +133,13 @@ def get_property_inputs() -> Dict[str, Any]:
             "Closing Costs",
             value=get_config_value(config, "property.closing_costs", 7500),
             step=500,
-            help="Fees paid at purchase: title insurance, escrow, legal fees, transfer taxes. Always paid by buyer/landlord. Example: $8,000 total closing costs → enter $8,000",
+            help="One-time fees paid at purchase (NOT part of down payment).\n\nIncludes: Title insurance, escrow fees, attorney/legal fees, recording fees, transfer taxes, lender origination fees.\n\nRule: Always entered as a positive number. These are your sunk costs to acquire the deal.\n\nExample: Purchase Price $300k. You pay $2k title + $1k escrow + $1.5k legal + $3k transfer tax = Enter $7,500.",
         )
         rehab_budget = st.number_input(
             "Rehab Budget",
             value=get_config_value(config, "property.rehab_budget", 15000),
             step=1000,
-            help="Renovation costs before tenants move in. Always paid by landlord. Example: Kitchen $15k + HVAC $8k + Paint $2k = $25k total",
+            help="Total cost of renovations and repairs needed before the property is rent-ready.\n\nIncludes: Materials, contractor labor, permits, cleanup, appliances.\n\nRule: Always entered as a positive number. This is money spent upfront.\n\nExample: New kitchen ($15k) + HVAC replacement ($8k) + painting ($2k) = Enter $25,000.",
         )
 
     with col2:
@@ -581,7 +581,7 @@ def get_income_inputs() -> Dict[str, Any]:
         min_percentage=0,
         max_percentage=20,
         currency_symbol=currency_symbol,
-        help_text=f"% of time with no tenant (no rent). Always include this. Example: 1 empty month per year = 8.3% (1÷12)",
+        help_text=f"Estimated percentage of the year the unit will be empty between tenants.\n\nRule: ALWAYS include this, even in hot markets. No property stays 100% full forever.\n\nGuideline: 5% is standard (approx. 2-3 weeks empty per year).\n\nCalculation: 1 month vacant / 12 months = 8.33% vacancy rate.",
     )
     
     # Dual-input for credit loss
@@ -594,7 +594,7 @@ def get_income_inputs() -> Dict[str, Any]:
         min_percentage=0,
         max_percentage=10,
         currency_symbol=currency_symbol,
-        help_text=f"Lost rent from non-paying tenants, evictions, bad debt. Always include this. Typical: 2-3%",
+        help_text=f"Estimated rent lost due to non-payment, evictions, or bad debt.\n\nRule: ALWAYS include this. Even great tenants can lose jobs or face hardships.\n\nGuideline: 1-3% for residential, higher for lower-income areas.\n\nExample: Rent is $2,000. 1% loss = budget $20/month for missed payments.",
     )
     
     annual_increase = st.number_input(
@@ -660,13 +660,13 @@ def get_expenses_inputs() -> Dict[str, Any]:
             "Annual Property Tax",
             value=get_config_value(config, "expenses.property_tax", 3600),
             step=100,
-            help="Yearly property taxes. Enter ONLY if YOU pay (not tenant). Residential leases: usually landlord pays. NNN/Commercial: often tenant pays → enter $0",
+            help="Yearly property taxes paid to the city/county.\n\nRule: Enter ONLY what YOU (landlord) pay. Do not enter if tenant pays directly (NNN).\n\nStandard Residential: Landlord almost always pays. Enter full annual tax bill.\n\nCommercial/Triple Net (NNN): Tenant pays taxes directly. Enter $0 here.",
         )
         insurance = st.number_input(
             "Annual Insurance",
             value=get_config_value(config, "expenses.insurance", 1200),
             step=100,
-            help="Your property/liability insurance (NOT tenant's renters insurance). Almost always landlord-paid. Example: Your policy is $1,200/year → enter $1,200",
+            help="Annual cost of Landlord Property & Liability Insurance.\n\nRule: Enter YOUR policy cost. Do NOT include tenant's renters insurance.\n\nNote: Landlord policies (DP-3) are typically 15-25% more than owner-occupied policies.\n\nExample: Quote is $1,200/year. Enter $1,200.",
         )
 
     with col2:
@@ -674,13 +674,13 @@ def get_expenses_inputs() -> Dict[str, Any]:
             "Monthly HOA",
             value=get_config_value(config, "expenses.hoa", 0),
             step=25,
-            help="HOA fees. Enter ONLY if YOU pay (not tenant). Example: Condo HOA $250/month paid by you → enter $250. If tenant pays → enter $0",
+            help="Homeowners Association (HOA) dues or Condo fees.\n\nRule: Enter ONLY if YOU (landlord) pay this. Most condos/townhomes require landlord to pay.\n\nIncludes: Common area maintenance, exterior insurance, amenities (pool/gym).\n\nExample: Monthly HOA is $350. Enter $350. If no HOA, enter $0.",
         )
         utilities = st.number_input(
             "Monthly Utilities (Landlord Paid)",
             value=get_config_value(config, "expenses.utilities", 0),
             step=25,
-            help="Water, sewer, trash, gas, electric. Enter ONLY what YOU pay per lease. Example: You pay water $50 + trash $30, tenant pays rest → enter $80",
+            help="Total monthly cost of utilities that YOU (landlord) are responsible for per the lease.\n\nCommon Landlord Utilities: Water, Sewer, Garbage, Common Area Electric.\n\nCommon Tenant Utilities: Electric inside unit, Gas, Internet/Cable.\n\nExample: You pay water ($50) + trash ($30). Tenant pays electric/gas. Enter $80.",
         )
 
     st.subheader("Variable Expenses (% of Income)")
@@ -789,7 +789,7 @@ def get_market_inputs() -> Dict[str, Any]:
             max_value=15.0,
             step=0.5,
             format="%.1f",
-            help="Realtor commission + closing costs when you sell. Always paid by seller. Typical: 6% commission. Example: 6% of $500k sale = $30k"
+            help="Estimated costs to SELL the property in the future (Commissions + Closing Costs).\n\nRule: Always assumed to be paid by seller (you) at exit.\n\nIncludes: Agent commissions (typically 5-6%), title policy, transfer taxes, recording fees.\n\nGuideline: 6-8% is standard. Enter 7% to be safe.",
         )
     
     with col3:
