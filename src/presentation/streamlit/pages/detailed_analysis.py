@@ -21,6 +21,9 @@ from ..components.charts import (
     display_proforma_table,
     display_sensitivity_heatmap,
     display_scenario_comparison_chart,
+    display_operating_metrics_timeseries,
+    display_wealth_metrics_timeseries,
+    display_roe_timeseries,
 )
 
 
@@ -335,7 +338,26 @@ def _display_analysis_results(
         display_proforma_table(deal, holding_period)
 
     with tab4:
-        display_proforma_chart(deal, holding_period)
+        st.subheader("Investment Performance Visualizations")
+        
+        # Time Series Charts Section
+        with st.expander("📈 Time Series Analysis", expanded=True):
+            st.markdown("### Operating Metrics Trends")
+            st.markdown("Track how your core operating metrics evolve over the holding period.")
+            display_operating_metrics_timeseries(deal, holding_period)
+            
+            st.markdown("### Return on Equity (ROE) Trends")
+            st.markdown("Monitor equity efficiency and identify optimal exit timing.")
+            display_roe_timeseries(deal, holding_period)
+            
+            st.markdown("### Wealth Building Trends")
+            st.markdown("Visualize equity buildup and property value appreciation over time.")
+            display_wealth_metrics_timeseries(deal, holding_period)
+        
+        # Legacy Charts Section
+        with st.expander("📊 Additional Charts", expanded=False):
+            st.markdown("### Equity & Cash Flow Breakdown")
+            display_proforma_chart(deal, holding_period)
 
     with tab5:
         _display_sensitivity_analysis(analysis_service, deal, holding_period)
