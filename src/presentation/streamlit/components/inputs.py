@@ -133,11 +133,13 @@ def get_property_inputs() -> Dict[str, Any]:
             "Closing Costs",
             value=get_config_value(config, "property.closing_costs", 7500),
             step=500,
+            help="One-time fees you pay ONLY when buying the property.\n\nIncludes:\n- Title Insurance (Owner's & Lender's Policy)\n- Escrow & Settlement Fees\n- Attorney / Legal Fees\n- Recording & Filing Fees\n- Transfer Taxes (City/County)\n- Lender Origination & Application Fees\n- Home Inspection & Appraisal Fees\n\nNote: This is separate from your Down Payment.",
         )
         rehab_budget = st.number_input(
             "Rehab Budget",
             value=get_config_value(config, "property.rehab_budget", 15000),
             step=1000,
+            help="Total upfront cost to make the property rent-ready.\n\nIncludes:\n- Construction Materials (Paint, Flooring, Lumber)\n- Contractor Labor & Fees\n- City Building Permits & Inspections\n- New Appliances (Stove, Fridge, HVAC)\n- Roof Repair / Replacement\n- Electrical & Plumbing Upgrades\n- Landscaping / Cleanup\n\nRule: Include everything spent BEFORE the first tenant moves in.",
         )
 
     with col2:
@@ -579,7 +581,7 @@ def get_income_inputs() -> Dict[str, Any]:
         min_percentage=0,
         max_percentage=20,
         currency_symbol=currency_symbol,
-        help_text=f"Vacancy loss on {currency_symbol}{gross_potential_rent:,.0f}/month GPR",
+        help_text=f"The time the property sits empty between tenants (0%% income).\n\nIncludes:\n- Time to find a new tenant\n- Time to clean/repair unit between leases\n- Market downtime (slow season)\n\nRule: ALWAYS enter something (usually 5-8%%). No property is 100%% full forever.",
     )
     
     # Dual-input for credit loss
@@ -592,7 +594,7 @@ def get_income_inputs() -> Dict[str, Any]:
         min_percentage=0,
         max_percentage=10,
         currency_symbol=currency_symbol,
-        help_text=f"Credit loss on {currency_symbol}{gross_potential_rent:,.0f}/month GPR",
+        help_text=f"Money lost from existing tenants who stop paying.\n\nIncludes:\n- Uncollected Rent (Bad Debt)\n- Cost of Eviction (Legal + Court Fees)\n- Property Damage beyond Security Deposit\n- Skip-outs (tenants leave unexpectedly)\n\nRule: ALWAYS budget for this (usually 1-2%%). Even good tenants can face hardship.",
     )
     
     annual_increase = st.number_input(
@@ -658,11 +660,13 @@ def get_expenses_inputs() -> Dict[str, Any]:
             "Annual Property Tax",
             value=get_config_value(config, "expenses.property_tax", 3600),
             step=100,
+            help="Yearly tax bill from your City or County for owning the property.\n\nIncludes:\n- School District Taxes\n- Municipal / City Taxes\n- County Taxes\n- Special Assessments (Bonds, Infrastructure)\n\nNote: This is NOT income tax. This is a tax on the property value itself.",
         )
         insurance = st.number_input(
             "Annual Insurance",
             value=get_config_value(config, "expenses.insurance", 1200),
             step=100,
+            help="Annual cost to insure the building and your liability.\n\nIncludes:\n- Dwelling Fire Policy (DP-3) - covers the structure\n- General Liability - if someone gets hurt on your property\n- Loss of Rents Coverage - pays you if building burns down\n\nNote: This is NOT 'Private Mortgage Insurance' (PMI) and NOT the tenant's renters insurance.",
         )
 
     with col2:
@@ -670,11 +674,13 @@ def get_expenses_inputs() -> Dict[str, Any]:
             "Monthly HOA",
             value=get_config_value(config, "expenses.hoa", 0),
             step=25,
+            help="Monthly dues paid to a Homeowners Association (common in Condos/Townhomes).\n\nUsually Covers:\n- Exterior Maintenance (Roof, Siding)\n- Common Areas (Hallways, Parking, Gym, Pool)\n- Master Insurance Policy (Studs-Out)\n- Landscaping / Snow Removal\n- Trash / Sewer (sometimes)\n\nNote: If Single Family House, this is often 0.",
         )
         utilities = st.number_input(
             "Monthly Utilities (Landlord Paid)",
             value=get_config_value(config, "expenses.utilities", 0),
             step=25,
+            help="Utilities that YOU (The Landlord) are required to pay.\n\nOften Includes:\n- Water / Sewer (many cities mandate landlord pays)\n- Garbage / Recycling\n- Common Area Electric (hallway lights)\n- Gas / Heat (in older multi-unit buildings)\n- Lawn Care / Snow Removal (sometimes)\n\nNote: Do not include utilities the tenant pays directly (like their own electric bill).",
         )
 
     st.subheader("Variable Expenses (% of Income)")
@@ -783,7 +789,7 @@ def get_market_inputs() -> Dict[str, Any]:
             max_value=15.0,
             step=0.5,
             format="%.1f",
-            help="Transaction costs when selling (agent fees, closing costs, etc.)"
+            help="Total cost to SELL the property in the future (Comes out of sale price).\n\nIncludes:\n- Real Estate Agent Commissions (Seller pays BOTH buyer/seller agents)\n- Seller's Title Insurance Policy\n- Transfer Taxes & Recording Fees\n- Seller Concessions (credits to buyer)\n- Staging & Professional Photos\n\nRule: Usually 6-8%% of the final sale price.",
         )
     
     with col3:
