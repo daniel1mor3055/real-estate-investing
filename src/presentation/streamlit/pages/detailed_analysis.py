@@ -323,21 +323,15 @@ def _display_analysis_results(
 
     metrics = result.metrics
 
-    # Display tabs
+    # Display tabs - Visualizations moved to second position
     tab1, tab2, tab3, tab4, tab5 = st.tabs(
-        ["Overview", "Cash Flow", "Pro Forma", "Visualizations", "Sensitivity"]
+        ["Overview", "Visualizations", "Cash Flow", "Pro Forma", "Sensitivity"]
     )
 
     with tab1:
         display_metrics_overview(deal, metrics)
 
     with tab2:
-        _display_cash_flow_analysis(deal)
-
-    with tab3:
-        display_proforma_table(deal, holding_period)
-
-    with tab4:
         st.subheader("Investment Performance Visualizations")
         
         # Time Series Charts Section
@@ -358,6 +352,12 @@ def _display_analysis_results(
         with st.expander("📊 Additional Charts", expanded=False):
             st.markdown("### Equity & Cash Flow Breakdown")
             display_proforma_chart(deal, holding_period)
+
+    with tab3:
+        _display_cash_flow_analysis(deal)
+
+    with tab4:
+        display_proforma_table(deal, holding_period)
 
     with tab5:
         _display_sensitivity_analysis(analysis_service, deal, holding_period)

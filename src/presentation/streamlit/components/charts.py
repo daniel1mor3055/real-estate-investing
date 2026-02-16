@@ -245,6 +245,7 @@ def display_operating_metrics_timeseries(deal: Deal, holding_period: int) -> Non
     """Display time series chart for core operating metrics.
     
     Shows annual NOI, Cash Flow, and DSCR over the holding period.
+    Allows selecting individual metrics due to different scales.
     
     Args:
         deal: The deal to analyze
@@ -262,86 +263,165 @@ def display_operating_metrics_timeseries(deal: Deal, holding_period: int) -> Non
     # Exclude year 0 (initial investment year) for operating metrics
     df_operating = df.loc[1:]
 
-    # Create figure with secondary y-axis for DSCR
-    fig = go.Figure()
-
-    # NOI line
-    fig.add_trace(
-        go.Scatter(
-            x=df_operating.index,
-            y=df_operating["net_operating_income"],
-            name="NOI",
-            line=dict(color="#10b981", width=2),
-            yaxis="y1",
-            hovertemplate="Year %{x}<br>NOI: $%{y:,.0f}<extra></extra>",
+    # Add metric selector
+    col1, col2 = st.columns([3, 1])
+    with col2:
+        metric_view = st.selectbox(
+            "View Metric",
+            ["All Metrics", "NOI", "Cash Flow", "DSCR"],
+            help="Select individual metric for detailed view with accurate axis scaling"
         )
-    )
 
-    # Cash Flow line
-    fig.add_trace(
-        go.Scatter(
-            x=df_operating.index,
-            y=df_operating["pre_tax_cash_flow"],
-            name="Cash Flow",
-            line=dict(color="#3b82f6", width=2),
-            yaxis="y1",
-            hovertemplate="Year %{x}<br>Cash Flow: $%{y:,.0f}<extra></extra>",
-        )
-    )
-
-    # DSCR line (on secondary y-axis)
     # Calculate DSCR for each year
     dscr_series = df_operating["net_operating_income"] / df_operating["debt_service"]
     dscr_series = dscr_series.replace([float('inf'), -float('inf')], 999.99)  # Handle division by zero
-    
-    fig.add_trace(
-        go.Scatter(
-            x=df_operating.index,
-            y=dscr_series,
-            name="DSCR",
-            line=dict(color="#f59e0b", width=2, dash="dash"),
-            yaxis="y2",
-            hovertemplate="Year %{x}<br>DSCR: %{y:.2f}x<extra></extra>",
+
+    if metric_view == "NOI":
+        # Show only NOI
+        fig = go.Figure()
+        fig.add_trace(
+            go.Scatter(
+                x=df_operating.index,
+                y=df_operating["net_operating_income"],
+                name="NOI",
+                line=dict(color="#10b981", width=3),
+                fill="tozeroy",
+                fillcolor="rgba(16, 185, 129, 0.1)",
+                hovertemplate="Year %{x}<br>NOI: $%{y:,.0f}<extra></extra>",
+            )
         )
-    )
-
-    # Add reference line at DSCR = 1.25 (typical lender requirement)
-    fig.add_hline(
-        y=1.25,
-        line_dash="dot",
-        line_color="red",
-        annotation_text="Minimum DSCR (1.25x)",
-        annotation_position="right",
-        yref="y2",
-    )
-
-    # Update layout with dual y-axes
-    fig.update_layout(
-        title="Operating Metrics Over Time",
-        xaxis=dict(title="Year", dtick=1),
-        yaxis=dict(
-            title="Amount ($)",
-            side="left",
-            showgrid=True,
-            tickformat="$,.0f",
-        ),
-        yaxis2=dict(
-            title="DSCR (x)",
-            side="right",
-            overlaying="y",
-            showgrid=False,
-            tickformat=".2f",
-        ),
-        hovermode="x unified",
-        legend=dict(
-            orientation="h",
-            yanchor="bottom",
-            y=1.02,
-            xanchor="right",
-            x=1
-        ),
-        height=500,
-    )
+        fig.update_layout(
+            title="Net Operating Income (NOI) Over Time",
+            xaxis=dict(title="Year", dtick=1),
+            yaxis=dict(title="NOI ($)", showgrid=True, tickformat="$,.0f"),
+            hovermode="x unified",
+            height=500,
+        )
+        
+    elif metric_view == "Cash Flow":
+        # Show only Cash Flow
+        fig = go.Figure()
+        fig.add_trace(
+            go.Scatter(
+                x=df_operating.index,
+                y=df_operating["pre_tax_cash_flow"],
+                name="Cash Flow",
+                line=dict(color="#3b82f6", width=3),
+                fill="tozeroy",
+                fillcolor="rgba(59, 130, 246, 0.1)",
+                hovertemplate="Year %{x}<br>Cash Flow: $%{y:,.0f}<extra></extra>",
+            )
+        )
+        # Add zero line for reference
+        fig.add_hline(y=0, line_dash="dot", line_color="red", annotation_text="Break-even")
+        
+        fig.update_layout(
+            title="Pre-Tax Cash Flow Over Time",
+            xaxis=dict(title="Year", dtick=1),
+            yaxis=dict(title="Cash Flow ($)", showgrid=True, tickformat="$,.0f"),
+            hovermode="x unified",
+            height=500,
+        )
+        
+    elif metric_view == "DSCR":
+        # Show only DSCR
+        fig = go.Figure()
+        fig.add_trace(
+            go.Scatter(
+                x=df_operating.index,
+                y=dscr_series,
+                name="DSCR",
+                line=dict(color="#f59e0b", width=3),
+                fill="tozeroy",
+                fillcolor="rgba(245, 158, 11, 0.1)",
+                hovertemplate="Year %{x}<br>DSCR: %{y:.2f}x<extra></extra>",
+            )
+        )
+        # Add reference line at DSCR = 1.25 (typical lender requirement)
+        fig.add_hline(
+            y=1.25,
+            line_dash="dash",
+            line_color="red",
+            annotation_text="Lender Minimum (1.25x)",
+            annotation_position="top right",
+        )
+        fig.add_hline(
+            y=1.0,
+            line_dash="dot",
+            line_color="gray",
+            annotation_text="Break-even (1.0x)",
+            annotation_position="bottom right",
+        )
+        
+        fig.update_layout(
+            title="Debt Service Coverage Ratio (DSCR) Over Time",
+            xaxis=dict(title="Year", dtick=1),
+            yaxis=dict(title="DSCR (x)", showgrid=True, tickformat=".2f"),
+            hovermode="x unified",
+            height=500,
+        )
+        
+    else:  # All Metrics - use normalized view or separate subplots
+        # Create subplots for better comparison
+        from plotly.subplots import make_subplots
+        
+        fig = make_subplots(
+            rows=3, cols=1,
+            subplot_titles=("Net Operating Income (NOI)", "Pre-Tax Cash Flow", "Debt Service Coverage Ratio (DSCR)"),
+            vertical_spacing=0.12,
+            row_heights=[0.33, 0.33, 0.33]
+        )
+        
+        # NOI subplot
+        fig.add_trace(
+            go.Scatter(
+                x=df_operating.index,
+                y=df_operating["net_operating_income"],
+                name="NOI",
+                line=dict(color="#10b981", width=2),
+                hovertemplate="Year %{x}<br>NOI: $%{y:,.0f}<extra></extra>",
+            ),
+            row=1, col=1
+        )
+        
+        # Cash Flow subplot
+        fig.add_trace(
+            go.Scatter(
+                x=df_operating.index,
+                y=df_operating["pre_tax_cash_flow"],
+                name="Cash Flow",
+                line=dict(color="#3b82f6", width=2),
+                hovertemplate="Year %{x}<br>Cash Flow: $%{y:,.0f}<extra></extra>",
+            ),
+            row=2, col=1
+        )
+        fig.add_hline(y=0, line_dash="dot", line_color="red", row=2, col=1)
+        
+        # DSCR subplot
+        fig.add_trace(
+            go.Scatter(
+                x=df_operating.index,
+                y=dscr_series,
+                name="DSCR",
+                line=dict(color="#f59e0b", width=2),
+                hovertemplate="Year %{x}<br>DSCR: %{y:.2f}x<extra></extra>",
+            ),
+            row=3, col=1
+        )
+        fig.add_hline(y=1.25, line_dash="dash", line_color="red", row=3, col=1)
+        
+        # Update axes
+        fig.update_xaxes(title_text="Year", dtick=1, row=3, col=1)
+        fig.update_yaxes(title_text="Amount ($)", tickformat="$,.0f", row=1, col=1)
+        fig.update_yaxes(title_text="Amount ($)", tickformat="$,.0f", row=2, col=1)
+        fig.update_yaxes(title_text="Ratio (x)", tickformat=".2f", row=3, col=1)
+        
+        fig.update_layout(
+            title_text="Operating Metrics Over Time",
+            showlegend=True,
+            height=800,
+            hovermode="x unified",
+        )
 
     st.plotly_chart(fig, use_container_width=True)
 
@@ -368,15 +448,18 @@ def display_roe_timeseries(deal: Deal, holding_period: int) -> None:
     # Exclude year 0 (initial investment year)
     df_roe = df.loc[1:]
 
+    # Calculate average ROE for reference line
+    avg_roe = df_roe["roe"].mean() * 100
+
     # Create figure
     fig = go.Figure()
 
-    # ROE line
+    # ROE line (actual performance)
     fig.add_trace(
         go.Scatter(
             x=df_roe.index,
             y=df_roe["roe"] * 100,  # Convert to percentage
-            name="ROE",
+            name="Actual ROE",
             line=dict(color="#8b5cf6", width=3),
             fill="tozeroy",
             fillcolor="rgba(139, 92, 246, 0.1)",
@@ -384,32 +467,41 @@ def display_roe_timeseries(deal: Deal, holding_period: int) -> None:
         )
     )
 
-    # Add reference lines for target ROE ranges
-    fig.add_hline(
-        y=8,
-        line_dash="dot",
-        line_color="orange",
-        annotation_text="Minimum Target (8%)",
-        annotation_position="right",
+    # Add reference lines for target ROE ranges with better visibility
+    # Minimum Target (Orange line)
+    fig.add_trace(
+        go.Scatter(
+            x=[df_roe.index.min(), df_roe.index.max()],
+            y=[8, 8],
+            name="Minimum Target (8%)",
+            line=dict(color="orange", width=2, dash="dot"),
+            hovertemplate="Minimum Target: 8%<br>Below this may indicate underperforming equity<extra></extra>",
+            showlegend=True,
+        )
     )
     
-    fig.add_hline(
-        y=12,
-        line_dash="dot",
-        line_color="green",
-        annotation_text="Strong Performance (12%)",
-        annotation_position="right",
+    # Strong Performance (Green line)
+    fig.add_trace(
+        go.Scatter(
+            x=[df_roe.index.min(), df_roe.index.max()],
+            y=[12, 12],
+            name="Strong Performance (12%)",
+            line=dict(color="green", width=2, dash="dot"),
+            hovertemplate="Strong Performance: 12%<br>Above this indicates efficient equity usage<extra></extra>",
+            showlegend=True,
+        )
     )
-
-    # Calculate and display average ROE
-    avg_roe = df_roe["roe"].mean() * 100
     
-    fig.add_hline(
-        y=avg_roe,
-        line_dash="dash",
-        line_color="blue",
-        annotation_text=f"Average ROE ({avg_roe:.1f}%)",
-        annotation_position="left",
+    # Average ROE (Blue line)
+    fig.add_trace(
+        go.Scatter(
+            x=[df_roe.index.min(), df_roe.index.max()],
+            y=[avg_roe, avg_roe],
+            name=f"Your Average ({avg_roe:.1f}%)",
+            line=dict(color="blue", width=2, dash="dash"),
+            hovertemplate=f"Your Average ROE: {avg_roe:.2f}%<extra></extra>",
+            showlegend=True,
+        )
     )
 
     fig.update_layout(
@@ -422,10 +514,18 @@ def display_roe_timeseries(deal: Deal, holding_period: int) -> None:
             ticksuffix="%",
         ),
         hovermode="x unified",
-        height=400,
+        height=450,
+        legend=dict(
+            orientation="v",
+            yanchor="top",
+            y=0.99,
+            xanchor="right",
+            x=0.99,
+            bgcolor="rgba(255, 255, 255, 0.8)",
+        ),
         annotations=[
             dict(
-                text="<i>ROE declining over time may signal opportunities to refinance or sell</i>",
+                text="<i>💡 Declining ROE over time may signal opportunities to refinance or sell</i>",
                 xref="paper",
                 yref="paper",
                 x=0.5,
@@ -465,7 +565,7 @@ def display_roe_timeseries(deal: Deal, holding_period: int) -> None:
             f"Year {holding_period} ROE",
             f"{final_roe:.2f}%",
             delta=f"{roe_change:+.2f}%",
-            help="Return on Equity in the final year vs Year 1"
+            help="Return on Equity in the final year compared to Year 1"
         )
 
 
