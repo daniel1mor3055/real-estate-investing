@@ -121,35 +121,30 @@ def run_analysis(deal: Deal, holding_period: int = 10):
     )
     print("-" * 80)
 
-    # Calculate metrics for different investor profiles
-    print("\nKEY METRICS BY INVESTOR PROFILE:")
+    # Calculate metrics
+    print("\nKEY METRICS:")
     print("-" * 80)
 
-    for profile in ["cash_flow", "balanced", "appreciation"]:
-        logger.info(f"Calculating metrics for {profile} investor")
+    logger.info(f"Calculating metrics")
 
-        try:
-            result = deal_service.run_analysis(
-                deal,
-                holding_period=holding_period,
-                investor_profile=profile,
-            )
+    try:
+        result = deal_service.run_analysis(
+            deal,
+            holding_period=holding_period,
+        )
 
-            metrics = result.metrics
-            print(f"\n{profile.upper()} INVESTOR:")
-            print(
-                f"  Deal Score: {metrics.deal_score.formatted_value if metrics.deal_score else 'N/A'}"
-            )
-            print(f"  Year 1 Cap Rate: {metrics.cap_rate.formatted_value}")
-            print(f"  Year 1 Cash-on-Cash: {metrics.coc_return.formatted_value}")
-            print(
-                f"  {holding_period}-Year IRR: {metrics.irr.formatted_value if metrics.irr else 'N/A'}"
-            )
-            print(
-                f"  Equity Multiple: {metrics.equity_multiple.formatted_value if metrics.equity_multiple else 'N/A'}"
-            )
-        except Exception as e:
-            print(f"  Error: {e}")
+        metrics = result.metrics
+        print(f"\nINVESTMENT METRICS:")
+        print(f"  Year 1 Cap Rate: {metrics.cap_rate.formatted_value}")
+        print(f"  Year 1 Cash-on-Cash: {metrics.coc_return.formatted_value}")
+        print(
+            f"  {holding_period}-Year IRR: {metrics.irr.formatted_value if metrics.irr else 'N/A'}"
+        )
+        print(
+            f"  Equity Multiple: {metrics.equity_multiple.formatted_value if metrics.equity_multiple else 'N/A'}"
+        )
+    except Exception as e:
+        print(f"  Error: {e}")
 
     # Show pro-forma summary
     print("\n" + "=" * 80)

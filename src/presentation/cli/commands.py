@@ -30,15 +30,8 @@ def cli(log_level: str):
 @click.option("--config", "-c", type=click.Path(exists=True), help="JSON config file")
 @click.option("--output", "-o", type=click.Path(), help="Output file for results")
 @click.option("--holding-period", "-h", default=10, help="Holding period in years")
-@click.option(
-    "--investor-profile",
-    "-p",
-    type=click.Choice(["cash_flow", "balanced", "appreciation"]),
-    default="balanced",
-    help="Investor profile",
-)
 def analyze(
-    config: str, output: Optional[str], holding_period: int, investor_profile: str
+    config: str, output: Optional[str], holding_period: int
 ):
     """Analyze a real estate deal from config file."""
     logger.info(f"Analyzing deal from config: {config}")
@@ -66,7 +59,6 @@ def analyze(
         result = deal_service.run_analysis(
             deal,
             holding_period=holding_period,
-            investor_profile=investor_profile,
         )
     except Exception as e:
         console.print(f"[red]Error: {e}[/red]")

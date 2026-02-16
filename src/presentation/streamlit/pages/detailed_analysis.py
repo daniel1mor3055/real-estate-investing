@@ -220,7 +220,7 @@ def _render_analysis_tab(
     """Render the analysis tab with parameters and results."""
     config = st.session_state.get("loaded_config")
 
-    col1, col2, col3 = st.columns(3)
+    col1, col2 = st.columns(2)
     with col1:
         holding_period_options = [5, 10, 15, 20, 30]
         default_holding = get_config_value(config, "analysis_defaults.holding_period", 10)
@@ -236,23 +236,6 @@ def _render_analysis_tab(
             index=holding_period_index,
         )
     with col2:
-        investor_profiles = ["cash_flow", "balanced", "appreciation"]
-        default_profile = get_config_value(
-            config, "analysis_defaults.investor_profile", "balanced"
-        )
-        profile_index = (
-            investor_profiles.index(default_profile)
-            if default_profile in investor_profiles
-            else 1
-        )
-
-        investor_profile = st.selectbox(
-            "Investor Profile",
-            investor_profiles,
-            index=profile_index,
-            format_func=lambda x: x.replace("_", " ").title(),
-        )
-    with col3:
         show_details = st.checkbox("Show Detailed Breakdown", value=True)
 
     if st.button("Run Analysis", type="primary"):
@@ -274,7 +257,6 @@ def _render_analysis_tab(
             analysis_service,
             deal,
             holding_period,
-            investor_profile,
             show_details,
         )
 
@@ -284,7 +266,6 @@ def _display_analysis_results(
     analysis_service: AnalysisService,
     deal: Deal,
     holding_period: int,
-    investor_profile: str,
     show_details: bool,
 ):
     """Display analysis results."""
@@ -295,7 +276,6 @@ def _display_analysis_results(
         result = deal_service.run_analysis(
             deal,
             holding_period=holding_period,
-            investor_profile=investor_profile,
             include_proforma=True,
         )
     except Exception as e:

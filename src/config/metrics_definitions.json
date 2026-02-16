@@ -177,23 +177,6 @@
     },
     "note": "Lower = more safety cushion"
   },
-  "DEAL_SCORE": {
-    "name": "Deal Score",
-    "shortName": "Deal Score",
-    "definition": "Deal Score is a weighted composite that summarizes multiple metrics (returns + safety) into a single 0–100 rating. Use it to compare deals quickly, then drill into the underlying KPIs to see what's driving the score.",
-    "formula": "Weighted combination of CoC, IRR, DSCR, Cap Rate, and Equity Multiple based on investor profile",
-    "includes": ["Multiple KPIs", "Investor profile weights"],
-    "excludes": [],
-    "higherIsBetter": true,
-    "benchmarks": {
-      "low": 40,
-      "target": 60,
-      "high": 80
-    },
-    "category": "summary",
-    "tooltipText": "Deal Score is a weighted composite that summarizes multiple metrics (returns + safety) into a single 0–100 rating. Use it to compare deals quickly, then drill into the underlying KPIs to see what's driving the score.",
-    "note": "Configurable based on investment strategy"
-  },
   "ROE": {
     "name": "Return on Equity",
     "shortName": "ROE",

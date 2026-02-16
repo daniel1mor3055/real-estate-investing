@@ -1,4 +1,4 @@
-"""Financial metrics calculator with investor profile strategies."""
+"""Financial metrics calculator."""
 
 from typing import Dict, List, Optional
 import numpy as np
@@ -9,7 +9,6 @@ from loguru import logger
 from .base import Calculator, CalculatorResult
 from .proforma import ProFormaCalculator
 from ..models.metrics import MetricResult, MetricType
-from ..strategies.investor import InvestorStrategy, get_investor_strategy
 
 
 class MetricsBundle(BaseModel):
@@ -27,9 +26,6 @@ class MetricsBundle(BaseModel):
     irr: Optional[MetricResult] = None
     npv: Optional[MetricResult] = None
     equity_multiple: Optional[MetricResult] = None
-    
-    # Deal Score
-    deal_score: Optional[MetricResult] = None
     
     # Risk Metrics
     break_even_ratio: Optional[MetricResult] = None
@@ -57,7 +53,6 @@ class MetricsCalculator(Calculator):
     def calculate(
         self, 
         holding_period: int = 10,
-        investor_profile: str = "balanced",
         discount_rate: float = 0.10,
         **kwargs
     ) -> CalculatorResult[MetricsBundle]:
@@ -81,21 +76,10 @@ class MetricsCalculator(Calculator):
                 discount_rate
             )
         
-        # Calculate deal score
-        deal_score = None
-        if investor_profile:
-            deal_score = self._calculate_deal_score(
-                basic_metrics,
-                advanced_metrics,
-                investor_profile,
-                holding_period
-            )
-        
         # Create metrics bundle
         metrics_bundle = MetricsBundle(
             **basic_metrics,
-            **advanced_metrics,
-            deal_score=deal_score
+            **advanced_metrics
         )
         
         return CalculatorResult(
@@ -103,7 +87,6 @@ class MetricsCalculator(Calculator):
             data=metrics_bundle,
             metadata={
                 "holding_period": holding_period,
-                "investor_profile": investor_profile,
                 "discount_rate": discount_rate
             }
         )
@@ -363,36 +346,4 @@ class MetricsCalculator(Calculator):
             "irr": irr_metric,
             "npv": npv_metric,
             "equity_multiple": em_metric
-        }
-    
-    def _calculate_deal_score(
-        self,
-        basic_metrics: Dict[str, MetricResult],
-        advanced_metrics: Dict[str, MetricResult],
-        investor_profile: str,
-        holding_period: int
-    ) -> MetricResult:
-        """Calculate weighted deal score based on investor profile."""
-        # Get investor strategy
-        strategy = get_investor_strategy(investor_profile)
-        
-        # Prepare metrics for scoring
-        metrics_dict = {
-            "coc_return": basic_metrics["coc_return"].value,
-            "dscr": min(basic_metrics["dscr"].value, 3.0),  # Cap DSCR at 3.0
-            "cap_rate": basic_metrics["cap_rate"].value,
-        }
-        
-        if "irr" in advanced_metrics:
-            metrics_dict["irr"] = advanced_metrics["irr"].value
-        if "equity_multiple" in advanced_metrics:
-            metrics_dict["equity_multiple"] = advanced_metrics["equity_multiple"].value
-        
-        # Calculate score
-        score = strategy.calculate_score(metrics_dict)
-        
-        return MetricResult.create_deal_score(
-            score,
-            investor_profile,
-            holding_period
-        ) 
+        } 

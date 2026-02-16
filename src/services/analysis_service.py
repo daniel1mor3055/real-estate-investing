@@ -55,7 +55,6 @@ class AnalysisService:
         deal: Deal,
         scenarios: Optional[List[Scenario]] = None,
         holding_period: int = 10,
-        investor_profile: str = "balanced",
     ) -> ScenarioResult:
         """Run scenario analysis with pessimistic, base, and optimistic cases.
         
@@ -63,7 +62,6 @@ class AnalysisService:
             deal: Base deal to analyze
             scenarios: Custom scenarios (uses defaults if None)
             holding_period: Holding period for calculations
-            investor_profile: Investor profile for scoring
             
         Returns:
             ScenarioResult with metrics for each scenario
@@ -72,7 +70,6 @@ class AnalysisService:
         return analyzer.analyze(
             scenarios=scenarios,
             holding_period=holding_period,
-            investor_profile=investor_profile,
         )
 
     def calculate_break_even_rent(
@@ -191,7 +188,6 @@ class AnalysisService:
                     "coc_return": metrics_result.data.coc_return.value,
                     "irr": metrics_result.data.irr.value if metrics_result.data.irr else None,
                     "dscr": metrics_result.data.dscr.value,
-                    "deal_score": metrics_result.data.deal_score.value if metrics_result.data.deal_score else None,
                 })
         
         return results

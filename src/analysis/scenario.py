@@ -85,7 +85,6 @@ class ScenarioMetrics(BaseModel):
     coc_return: float
     dscr: float
     equity_multiple: Optional[float] = None
-    deal_score: Optional[float] = None
     noi_year1: float
     cash_flow_year1: float
 
@@ -134,7 +133,6 @@ class ScenarioResult(BaseModel):
                 "coc_return": s.coc_return,
                 "dscr": s.dscr,
                 "equity_multiple": s.equity_multiple,
-                "deal_score": s.deal_score,
                 "noi_year1": s.noi_year1,
                 "cash_flow_year1": s.cash_flow_year1,
             }
@@ -159,14 +157,12 @@ class ScenarioAnalyzer:
         self,
         scenarios: Optional[List[Scenario]] = None,
         holding_period: int = 10,
-        investor_profile: str = "balanced",
     ) -> ScenarioResult:
         """Run scenario analysis.
         
         Args:
             scenarios: List of scenarios to analyze (defaults to pessimistic/base/optimistic)
             holding_period: Holding period for calculations
-            investor_profile: Investor profile for scoring
             
         Returns:
             ScenarioResult with metrics for each scenario
@@ -188,7 +184,6 @@ class ScenarioAnalyzer:
             calculator = MetricsCalculator(modified_deal)
             result = calculator.calculate(
                 holding_period=holding_period,
-                investor_profile=investor_profile,
             )
             
             if result.success:
@@ -201,7 +196,6 @@ class ScenarioAnalyzer:
                         coc_return=metrics.coc_return.value,
                         dscr=metrics.dscr.value,
                         equity_multiple=metrics.equity_multiple.value if metrics.equity_multiple else None,
-                        deal_score=metrics.deal_score.value if metrics.deal_score else None,
                         noi_year1=metrics.noi_year1.value,
                         cash_flow_year1=metrics.cash_flow_year1.value,
                     )
