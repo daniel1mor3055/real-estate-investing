@@ -241,6 +241,414 @@ def display_scenario_comparison_chart(scenario_results: dict) -> None:
     st.plotly_chart(fig, use_container_width=True)
 
 
+def display_operating_metrics_timeseries(deal: Deal, holding_period: int) -> None:
+    """Display time series chart for core operating metrics.
+    
+    Shows annual NOI, Cash Flow, and DSCR over the holding period.
+    Allows selecting individual metrics due to different scales.
+    
+    Args:
+        deal: The deal to analyze
+        holding_period: Holding period in years
+    """
+    calc = ProFormaCalculator(deal)
+    result = calc.calculate(years=holding_period)
+
+    if not result.success:
+        st.error("Unable to generate operating metrics chart")
+        return
+
+    df = result.data.to_dataframe()
+    
+    # Exclude year 0 (initial investment year) for operating metrics
+    df_operating = df.loc[1:]
+
+    # Add metric selector
+    col1, col2 = st.columns([3, 1])
+    with col2:
+        metric_view = st.selectbox(
+            "View Metric",
+            ["All Metrics", "NOI", "Cash Flow", "DSCR"],
+            help="Select individual metric for detailed view with accurate axis scaling"
+        )
+
+    # Calculate DSCR for each year
+    dscr_series = df_operating["net_operating_income"] / df_operating["debt_service"]
+    dscr_series = dscr_series.replace([float('inf'), -float('inf')], 999.99)  # Handle division by zero
+
+    if metric_view == "NOI":
+        # Show only NOI
+        fig = go.Figure()
+        fig.add_trace(
+            go.Scatter(
+                x=df_operating.index,
+                y=df_operating["net_operating_income"],
+                name="NOI",
+                line=dict(color="#10b981", width=3),
+                fill="tozeroy",
+                fillcolor="rgba(16, 185, 129, 0.1)",
+                hovertemplate="Year %{x}<br>NOI: $%{y:,.0f}<extra></extra>",
+            )
+        )
+        fig.update_layout(
+            title="Net Operating Income (NOI) Over Time",
+            xaxis=dict(title="Year", dtick=1),
+            yaxis=dict(title="NOI ($)", showgrid=True, tickformat="$,.0f"),
+            hovermode="x unified",
+            height=500,
+        )
+        
+    elif metric_view == "Cash Flow":
+        # Show only Cash Flow
+        fig = go.Figure()
+        fig.add_trace(
+            go.Scatter(
+                x=df_operating.index,
+                y=df_operating["pre_tax_cash_flow"],
+                name="Cash Flow",
+                line=dict(color="#3b82f6", width=3),
+                fill="tozeroy",
+                fillcolor="rgba(59, 130, 246, 0.1)",
+                hovertemplate="Year %{x}<br>Cash Flow: $%{y:,.0f}<extra></extra>",
+            )
+        )
+        # Add zero line for reference
+        fig.add_hline(y=0, line_dash="dot", line_color="red", annotation_text="Break-even")
+        
+        fig.update_layout(
+            title="Pre-Tax Cash Flow Over Time",
+            xaxis=dict(title="Year", dtick=1),
+            yaxis=dict(title="Cash Flow ($)", showgrid=True, tickformat="$,.0f"),
+            hovermode="x unified",
+            height=500,
+        )
+        
+    elif metric_view == "DSCR":
+        # Show only DSCR
+        fig = go.Figure()
+        fig.add_trace(
+            go.Scatter(
+                x=df_operating.index,
+                y=dscr_series,
+                name="DSCR",
+                line=dict(color="#f59e0b", width=3),
+                fill="tozeroy",
+                fillcolor="rgba(245, 158, 11, 0.1)",
+                hovertemplate="Year %{x}<br>DSCR: %{y:.2f}x<extra></extra>",
+            )
+        )
+        # Add reference line at DSCR = 1.25 (typical lender requirement)
+        fig.add_hline(
+            y=1.25,
+            line_dash="dash",
+            line_color="red",
+            annotation_text="Lender Minimum (1.25x)",
+            annotation_position="top right",
+        )
+        fig.add_hline(
+            y=1.0,
+            line_dash="dot",
+            line_color="gray",
+            annotation_text="Break-even (1.0x)",
+            annotation_position="bottom right",
+        )
+        
+        fig.update_layout(
+            title="Debt Service Coverage Ratio (DSCR) Over Time",
+            xaxis=dict(title="Year", dtick=1),
+            yaxis=dict(title="DSCR (x)", showgrid=True, tickformat=".2f"),
+            hovermode="x unified",
+            height=500,
+        )
+        
+    else:  # All Metrics - use normalized view or separate subplots
+        # Create subplots for better comparison
+        from plotly.subplots import make_subplots
+        
+        fig = make_subplots(
+            rows=3, cols=1,
+            subplot_titles=("Net Operating Income (NOI)", "Pre-Tax Cash Flow", "Debt Service Coverage Ratio (DSCR)"),
+            vertical_spacing=0.12,
+            row_heights=[0.33, 0.33, 0.33]
+        )
+        
+        # NOI subplot
+        fig.add_trace(
+            go.Scatter(
+                x=df_operating.index,
+                y=df_operating["net_operating_income"],
+                name="NOI",
+                line=dict(color="#10b981", width=2),
+                hovertemplate="Year %{x}<br>NOI: $%{y:,.0f}<extra></extra>",
+            ),
+            row=1, col=1
+        )
+        
+        # Cash Flow subplot
+        fig.add_trace(
+            go.Scatter(
+                x=df_operating.index,
+                y=df_operating["pre_tax_cash_flow"],
+                name="Cash Flow",
+                line=dict(color="#3b82f6", width=2),
+                hovertemplate="Year %{x}<br>Cash Flow: $%{y:,.0f}<extra></extra>",
+            ),
+            row=2, col=1
+        )
+        fig.add_hline(y=0, line_dash="dot", line_color="red", row=2, col=1)
+        
+        # DSCR subplot
+        fig.add_trace(
+            go.Scatter(
+                x=df_operating.index,
+                y=dscr_series,
+                name="DSCR",
+                line=dict(color="#f59e0b", width=2),
+                hovertemplate="Year %{x}<br>DSCR: %{y:.2f}x<extra></extra>",
+            ),
+            row=3, col=1
+        )
+        fig.add_hline(y=1.25, line_dash="dash", line_color="red", row=3, col=1)
+        
+        # Update axes
+        fig.update_xaxes(title_text="Year", dtick=1, row=3, col=1)
+        fig.update_yaxes(title_text="Amount ($)", tickformat="$,.0f", row=1, col=1)
+        fig.update_yaxes(title_text="Amount ($)", tickformat="$,.0f", row=2, col=1)
+        fig.update_yaxes(title_text="Ratio (x)", tickformat=".2f", row=3, col=1)
+        
+        fig.update_layout(
+            title_text="Operating Metrics Over Time",
+            showlegend=True,
+            height=800,
+            hovermode="x unified",
+        )
+
+    st.plotly_chart(fig, use_container_width=True)
+
+
+def display_roe_timeseries(deal: Deal, holding_period: int) -> None:
+    """Display time series chart for Return on Equity (ROE).
+    
+    Shows how ROE evolves over the holding period, providing insights
+    into equity efficiency and when to consider refinancing or selling.
+    
+    Args:
+        deal: The deal to analyze
+        holding_period: Holding period in years
+    """
+    calc = ProFormaCalculator(deal)
+    result = calc.calculate(years=holding_period)
+
+    if not result.success:
+        st.error("Unable to generate ROE chart")
+        return
+
+    df = result.data.to_dataframe()
+    
+    # Exclude year 0 (initial investment year)
+    df_roe = df.loc[1:]
+
+    # Calculate average ROE for reference line
+    avg_roe = df_roe["roe"].mean() * 100
+
+    # Create figure
+    fig = go.Figure()
+
+    # ROE line (actual performance)
+    fig.add_trace(
+        go.Scatter(
+            x=df_roe.index,
+            y=df_roe["roe"] * 100,  # Convert to percentage
+            name="Actual ROE",
+            line=dict(color="#8b5cf6", width=3),
+            fill="tozeroy",
+            fillcolor="rgba(139, 92, 246, 0.1)",
+            hovertemplate="Year %{x}<br>ROE: %{y:.2f}%<extra></extra>",
+        )
+    )
+
+    # Add reference lines for target ROE ranges with better visibility
+    # Minimum Target (Orange line)
+    fig.add_trace(
+        go.Scatter(
+            x=[df_roe.index.min(), df_roe.index.max()],
+            y=[8, 8],
+            name="Minimum Target (8%)",
+            line=dict(color="orange", width=2, dash="dot"),
+            hovertemplate="Minimum Target: 8%<br>Below this may indicate underperforming equity<extra></extra>",
+            showlegend=True,
+        )
+    )
+    
+    # Strong Performance (Green line)
+    fig.add_trace(
+        go.Scatter(
+            x=[df_roe.index.min(), df_roe.index.max()],
+            y=[12, 12],
+            name="Strong Performance (12%)",
+            line=dict(color="green", width=2, dash="dot"),
+            hovertemplate="Strong Performance: 12%<br>Above this indicates efficient equity usage<extra></extra>",
+            showlegend=True,
+        )
+    )
+    
+    # Average ROE (Blue line)
+    fig.add_trace(
+        go.Scatter(
+            x=[df_roe.index.min(), df_roe.index.max()],
+            y=[avg_roe, avg_roe],
+            name=f"Your Average ({avg_roe:.1f}%)",
+            line=dict(color="blue", width=2, dash="dash"),
+            hovertemplate=f"Your Average ROE: {avg_roe:.2f}%<extra></extra>",
+            showlegend=True,
+        )
+    )
+
+    fig.update_layout(
+        title="Return on Equity (ROE) Over Time",
+        xaxis=dict(title="Year", dtick=1),
+        yaxis=dict(
+            title="ROE (%)",
+            showgrid=True,
+            tickformat=".1f",
+            ticksuffix="%",
+        ),
+        hovermode="x unified",
+        height=450,
+        legend=dict(
+            orientation="v",
+            yanchor="top",
+            y=0.99,
+            xanchor="right",
+            x=0.99,
+            bgcolor="rgba(255, 255, 255, 0.8)",
+        ),
+        annotations=[
+            dict(
+                text="<i>💡 Declining ROE over time may signal opportunities to refinance or sell</i>",
+                xref="paper",
+                yref="paper",
+                x=0.5,
+                y=-0.15,
+                showarrow=False,
+                font=dict(size=10, color="gray"),
+                xanchor="center",
+            )
+        ],
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
+    
+    # Add interpretation help
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.metric(
+            "Average ROE",
+            f"{avg_roe:.2f}%",
+            help="Average Return on Equity across all years"
+        )
+    
+    with col2:
+        year_1_roe = df_roe.loc[1, "roe"] * 100
+        final_roe = df_roe.iloc[-1]["roe"] * 100
+        roe_change = final_roe - year_1_roe
+        st.metric(
+            f"Year 1 ROE",
+            f"{year_1_roe:.2f}%",
+            delta=None,
+            help="Return on Equity in the first year"
+        )
+    
+    with col3:
+        st.metric(
+            f"Year {holding_period} ROE",
+            f"{final_roe:.2f}%",
+            delta=f"{roe_change:+.2f}%",
+            help="Return on Equity in the final year compared to Year 1"
+        )
+
+
+def display_wealth_metrics_timeseries(deal: Deal, holding_period: int) -> None:
+    """Display time series chart for wealth building metrics.
+    
+    Shows annual Property Value, Total Equity, and Loan Balance.
+    
+    Args:
+        deal: The deal to analyze
+        holding_period: Holding period in years
+    """
+    calc = ProFormaCalculator(deal)
+    result = calc.calculate(years=holding_period)
+
+    if not result.success:
+        st.error("Unable to generate wealth metrics chart")
+        return
+
+    df = result.data.to_dataframe()
+
+    # Create stacked area chart
+    fig = go.Figure()
+
+    # Loan Balance (bottom layer)
+    fig.add_trace(
+        go.Scatter(
+            x=df.index,
+            y=df["loan_balance"],
+            name="Loan Balance",
+            fill="tozeroy",
+            line=dict(width=0.5, color="#ef4444"),
+            fillcolor="rgba(239, 68, 68, 0.3)",
+            hovertemplate="Year %{x}<br>Loan Balance: $%{y:,.0f}<extra></extra>",
+        )
+    )
+
+    # Total Equity (middle layer)
+    fig.add_trace(
+        go.Scatter(
+            x=df.index,
+            y=df["total_equity"],
+            name="Total Equity",
+            fill="tonexty",
+            line=dict(width=0.5, color="#10b981"),
+            fillcolor="rgba(16, 185, 129, 0.5)",
+            hovertemplate="Year %{x}<br>Total Equity: $%{y:,.0f}<extra></extra>",
+        )
+    )
+
+    # Property Value (top line - not filled)
+    fig.add_trace(
+        go.Scatter(
+            x=df.index,
+            y=df["property_value"],
+            name="Property Value",
+            line=dict(width=3, color="#3b82f6"),
+            hovertemplate="Year %{x}<br>Property Value: $%{y:,.0f}<extra></extra>",
+        )
+    )
+
+    fig.update_layout(
+        title="Wealth Building Metrics Over Time",
+        xaxis=dict(title="Year", dtick=1),
+        yaxis=dict(
+            title="Amount ($)",
+            showgrid=True,
+            tickformat="$,.0f",
+        ),
+        hovermode="x unified",
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            xanchor="right",
+            x=1
+        ),
+        height=500,
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
+
+
 def display_proforma_table(deal: Deal, holding_period: int) -> None:
     """Display pro-forma projections table.
     

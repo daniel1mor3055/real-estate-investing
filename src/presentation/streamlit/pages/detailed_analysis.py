@@ -21,6 +21,9 @@ from ..components.charts import (
     display_proforma_table,
     display_sensitivity_heatmap,
     display_scenario_comparison_chart,
+    display_operating_metrics_timeseries,
+    display_wealth_metrics_timeseries,
+    display_roe_timeseries,
 )
 
 
@@ -300,22 +303,41 @@ def _display_analysis_results(
 
     metrics = result.metrics
 
-    # Display tabs
+    # Display tabs - Visualizations moved to second position
     tab1, tab2, tab3, tab4, tab5 = st.tabs(
-        ["Overview", "Cash Flow", "Pro Forma", "Visualizations", "Sensitivity"]
+        ["Overview", "Visualizations", "Cash Flow", "Pro Forma", "Sensitivity"]
     )
 
     with tab1:
         display_metrics_overview(deal, metrics)
 
     with tab2:
-        _display_cash_flow_analysis(deal)
+        st.subheader("Investment Performance Visualizations")
+        
+        # Time Series Charts Section
+        with st.expander("📈 Time Series Analysis", expanded=True):
+            st.markdown("### Operating Metrics Trends")
+            st.markdown("Track how your core operating metrics evolve over the holding period.")
+            display_operating_metrics_timeseries(deal, holding_period)
+            
+            st.markdown("### Return on Equity (ROE) Trends")
+            st.markdown("Monitor equity efficiency and identify optimal exit timing.")
+            display_roe_timeseries(deal, holding_period)
+            
+            st.markdown("### Wealth Building Trends")
+            st.markdown("Visualize equity buildup and property value appreciation over time.")
+            display_wealth_metrics_timeseries(deal, holding_period)
+        
+        # Legacy Charts Section
+        with st.expander("📊 Additional Charts", expanded=False):
+            st.markdown("### Equity & Cash Flow Breakdown")
+            display_proforma_chart(deal, holding_period)
 
     with tab3:
-        display_proforma_table(deal, holding_period)
+        _display_cash_flow_analysis(deal)
 
     with tab4:
-        display_proforma_chart(deal, holding_period)
+        display_proforma_table(deal, holding_period)
 
     with tab5:
         _display_sensitivity_analysis(analysis_service, deal, holding_period)
