@@ -51,7 +51,7 @@ def _render_dual_input_widget(
     with col1:
         input_mode = st.radio(
             "Input as:",
-            ["Percentage", "Amount"],
+            options=["Percentage", "Amount"],
             key=mode_key,
             help="Toggle between percentage and absolute amount input",
         )
@@ -198,8 +198,9 @@ def get_financing_inputs() -> Dict[str, Any]:
 
     financing_mode = st.radio(
         "Financing Mode",
-        ["Israeli Mortgage Tracks", "Simple Loan", "Cash Purchase"],
+        options=["Israeli Mortgage Tracks", "Simple Loan", "Cash Purchase"],
         index=0,
+        key="financing_mode_radio",
         help="Choose between Israeli multi-track mortgage, simple single loan, or all-cash purchase",
     )
 
