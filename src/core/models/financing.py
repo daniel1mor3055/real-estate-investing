@@ -355,7 +355,9 @@ class Financing(BaseModel):
             # Israeli mortgage tracks mode
             # Validate that track amounts don't exceed total loan amount
             total_track_amount = sum(track.loan_amount for track in self.sub_loans)
-            if total_track_amount > total_loan_amount:
+            
+            # Allow small floating point tolerance (0.01)
+            if total_track_amount > total_loan_amount + 0.01:
                 raise ValueError(
                     f"Total track amount ({total_track_amount:,.0f}) exceeds available loan amount ({total_loan_amount:,.0f})"
                 )
