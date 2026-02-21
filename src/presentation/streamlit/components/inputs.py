@@ -3,7 +3,7 @@
 from typing import Any, Dict, List, Optional, Tuple
 import streamlit as st
 
-from ....core.models import PropertyType, FinancingType, IsraeliMortgageTrack
+from ....core.models import PropertyType, FinancingType, IsraeliMortgageTrack, RepaymentMethod
 from ....adapters.config_loader import get_config_value
 
 
@@ -324,12 +324,39 @@ def _get_israeli_mortgage_inputs() -> Dict[str, Any]:
     }
 
 
+_TRACK_TYPE_DISPLAY = {
+    "fixed_rate_linked": "Fixed (linked to index)",
+    "fixed_unlinked": "Fixed (not linked to index)",
+    "variable_linked_5y": "Variable (linked) every 5 years",
+    "variable_unlinked_5y": "Variable (not linked) every 5 years",
+    "variable_linked_1y": "Variable (linked) every year",
+    "variable_linked_2y": "Variable (linked) every 2 years",
+    "variable_linked_10y": "Variable (linked) every 10 years",
+}
+
+_UI_TRACK_TYPES = list(_TRACK_TYPE_DISPLAY.keys())
+
+_REPAYMENT_DISPLAY = {
+    "spitzer": "Spitzer (Annuity)",
+    "equal_principal": "Equal Principal (קרן שווה)",
+    "bullet": "Bullet (בלון)",
+}
+
+_CPI_LINKED_TYPES = {
+    "fixed_rate_linked",
+    "variable_linked_5y",
+    "variable_linked_1y",
+    "variable_linked_2y",
+    "variable_linked_10y",
+}
+
+
 def _get_single_track_inputs(
-    track_index: int, 
-    track_config: Dict, 
-    total_percentage: int, 
+    track_index: int,
+    track_config: Dict,
+    total_percentage: int,
     loan_amount: float,
-    currency_symbol: str = "$"
+    currency_symbol: str = "$",
 ) -> Dict[str, Any]:
     """Get inputs for a single mortgage track."""
     with st.container():
@@ -341,6 +368,7 @@ def _get_single_track_inputs(
             unsafe_allow_html=True,
         )
 
+        # --- Row 1: Name & Track Type ---
         col1, col2 = st.columns(2)
 
         with col1:
@@ -350,30 +378,25 @@ def _get_single_track_inputs(
                 key=f"track_name_{track_index}",
             )
 
-            track_type_options = [t.value for t in IsraeliMortgageTrack]
             track_type_default = track_config.get(
-                "track_type", "fixed_unlinked" if track_index == 0 else "prime_rate"
+                "track_type",
+                "fixed_unlinked" if track_index == 0 else "fixed_rate_linked",
             )
             track_type_index = (
-                track_type_options.index(track_type_default)
-                if track_type_default in track_type_options
+                _UI_TRACK_TYPES.index(track_type_default)
+                if track_type_default in _UI_TRACK_TYPES
                 else 0
             )
 
             track_type = st.selectbox(
                 "Track Type",
-                track_type_options,
+                _UI_TRACK_TYPES,
                 index=track_type_index,
-                format_func=lambda x: {
-                    "fixed_unlinked": 'Fixed Unlinked (קל"צ)',
-                    "prime_rate": "Prime Rate (פריים)",
-                    "fixed_rate_linked": "Fixed-Rate Linked (צמוד)",
-                }.get(x, x),
+                format_func=lambda x: _TRACK_TYPE_DISPLAY.get(x, x),
                 key=f"track_type_{track_index}",
             )
-        
+
         with col2:
-            # Dual-input for track percentage/amount
             default_percentage = track_config.get(
                 "percentage", 33 if track_index < 2 else max(1, 100 - total_percentage)
             )
@@ -389,16 +412,16 @@ def _get_single_track_inputs(
             )
             percentage = track_percentage
 
-        # Interest rate and loan term section
-        col3, col4 = st.columns(2)
-        
+        # --- Row 2: Interest Rate, Term (months), Repayment Method ---
+        col3, col4, col5 = st.columns(3)
+
         with col3:
             default_base_rate = track_config.get(
                 "base_rate",
                 4.5
                 if track_type == "fixed_unlinked"
                 else 3.8
-                if track_type == "fixed_rate_linked"
+                if track_type in _CPI_LINKED_TYPES
                 else 4.0,
             )
 
@@ -410,53 +433,145 @@ def _get_single_track_inputs(
                 key=f"track_rate_{track_index}",
             )
 
-            loan_term_options = [3, 5, 10, 15, 20, 25, 26, 30]
-            default_term = track_config.get("loan_term", 30)
-            loan_term_index = (
-                loan_term_options.index(default_term)
-                if default_term in loan_term_options
-                else len(loan_term_options) - 1
-            )
-
-            loan_term = st.selectbox(
-                "Term (years)",
-                loan_term_options,
-                index=loan_term_index,
-                key=f"track_term_{track_index}",
-            )
-
         with col4:
-            bank_of_israel_rate = None
-            expected_cpi = None
+            default_term_months = track_config.get(
+                "loan_term_months",
+                track_config.get("loan_term", 25) * 12,
+            )
+            term_months = st.number_input(
+                "Term (months)",
+                min_value=1,
+                max_value=360,
+                value=int(default_term_months),
+                step=12,
+                key=f"track_term_months_{track_index}",
+                help=f"Loan term in months (1-360). {int(default_term_months)} months = {default_term_months / 12:.1f} years",
+            )
+            st.caption(f"= {term_months / 12:.1f} years")
 
-            if track_type == "prime_rate":
-                default_boi_rate = track_config.get("bank_of_israel_rate", 3.25)
-                bank_of_israel_rate = st.number_input(
-                    "Bank of Israel Rate %",
-                    min_value=0.0,
-                    value=float(default_boi_rate),
-                    step=0.25,
-                    help="Official BoI rate (Prime = BoI + 1.5%)",
-                    key=f"track_boi_{track_index}",
+        with col5:
+            repayment_options = [m.value for m in RepaymentMethod]
+            repayment_default = track_config.get("repayment_method", "spitzer")
+            repayment_index = (
+                repayment_options.index(repayment_default)
+                if repayment_default in repayment_options
+                else 0
+            )
+
+            repayment_method = st.selectbox(
+                "Repayment Method",
+                repayment_options,
+                index=repayment_index,
+                format_func=lambda x: _REPAYMENT_DISPLAY.get(x, x),
+                key=f"track_repayment_{track_index}",
+            )
+
+        # --- Row 3: CPI (for linked tracks) ---
+        bank_of_israel_rate = None
+        expected_cpi = None
+
+        if track_type in _CPI_LINKED_TYPES:
+            default_cpi = track_config.get("expected_cpi", 2.5)
+            expected_cpi = st.number_input(
+                "Expected Annual CPI %",
+                min_value=-2.0,
+                max_value=10.0,
+                value=float(default_cpi),
+                step=0.1,
+                help="Expected annual CPI for principal indexation",
+                key=f"track_cpi_{track_index}",
+            )
+
+        # --- Grace Period (expandable) ---
+        grace_period_months = None
+        grace_type = None
+
+        with st.expander("Grace Period", expanded=False):
+            enable_grace = st.checkbox(
+                "Enable Grace Period",
+                value=bool(track_config.get("grace_period", 0)),
+                key=f"track_grace_enable_{track_index}",
+            )
+
+            if enable_grace:
+                gc1, gc2 = st.columns(2)
+                with gc1:
+                    grace_period_months = st.number_input(
+                        "Grace Duration (months)",
+                        min_value=1,
+                        max_value=min(120, term_months - 1),
+                        value=int(track_config.get("grace_period", 12)),
+                        step=1,
+                        key=f"track_grace_months_{track_index}",
+                    )
+                with gc2:
+                    grace_type_options = ["interest_only", "full_deferral"]
+                    grace_type = st.selectbox(
+                        "Grace Type",
+                        grace_type_options,
+                        index=0,
+                        format_func=lambda x: {
+                            "interest_only": "Interest Only",
+                            "full_deferral": "Full Deferral (no payments)",
+                        }.get(x, x),
+                        key=f"track_grace_type_{track_index}",
+                    )
+
+        # --- Prepayment / Early Repayment (expandable) ---
+        prepayment_month = None
+        prepayment_amount = None
+        prepayment_type = "reduce_payment"
+
+        with st.expander("Early Repayment", expanded=False):
+            enable_prepay = st.checkbox(
+                "Add Early Repayment",
+                value=bool(track_config.get("prepayment_month")),
+                key=f"track_prepay_enable_{track_index}",
+            )
+
+            if enable_prepay:
+                pc1, pc2 = st.columns(2)
+                with pc1:
+                    prepayment_month = st.number_input(
+                        "At Month",
+                        min_value=1,
+                        max_value=term_months,
+                        value=int(track_config.get("prepayment_month", 60)),
+                        step=1,
+                        key=f"track_prepay_month_{track_index}",
+                        help="Which month to make the early repayment",
+                    )
+
+                with pc2:
+                    prepay_scope = st.radio(
+                        "Amount",
+                        options=["Full Remaining", "Specific Amount"],
+                        index=0,
+                        key=f"track_prepay_scope_{track_index}",
+                    )
+
+                if prepay_scope == "Specific Amount":
+                    prepayment_amount = st.number_input(
+                        "Repayment Amount",
+                        min_value=1.0,
+                        value=float(track_config.get("prepayment_amount", 50_000)),
+                        step=1000.0,
+                        key=f"track_prepay_amount_{track_index}",
+                    )
+                else:
+                    prepayment_amount = float(track_amount)
+
+                prepayment_type = st.radio(
+                    "After Early Repayment",
+                    options=["reduce_payment", "reduce_term"],
+                    index=0,
+                    format_func=lambda x: {
+                        "reduce_payment": "Reduce Monthly Payment",
+                        "reduce_term": "Shorten the Term",
+                    }.get(x, x),
+                    key=f"track_prepay_type_{track_index}",
+                    horizontal=True,
                 )
-                prime_rate = bank_of_israel_rate + 1.5
-                st.info(f"Prime Rate: {prime_rate:.2f}%")
-
-            elif track_type == "fixed_rate_linked":
-                default_cpi = track_config.get("expected_cpi", 2.5)
-                expected_cpi = st.number_input(
-                    "Expected CPI %",
-                    min_value=-2.0,
-                    max_value=10.0,
-                    value=float(default_cpi),
-                    step=0.1,
-                    help="Expected annual CPI for principal adjustment",
-                    key=f"track_cpi_{track_index}",
-                )
-                st.info("Principal will be adjusted for CPI over time")
-
-            else:
-                st.info("Most stable track - fixed rate and principal")
 
         st.markdown("</div>", unsafe_allow_html=True)
 
@@ -466,10 +581,19 @@ def _get_single_track_inputs(
         "percentage": percentage,
         "amount": track_amount,
         "base_rate": base_rate,
-        "loan_term": loan_term,
+        "loan_term_months": term_months,
+        "repayment_method": repayment_method,
         "bank_of_israel_rate": bank_of_israel_rate,
         "expected_cpi": expected_cpi,
+        "grace_period": grace_period_months,
+        "grace_type": grace_type,
+        "prepayment_month": prepayment_month,
+        "prepayment_amount": prepayment_amount,
+        "prepayment_type": prepayment_type,
     }
+
+
+_FIXED_TRACK_TYPES = {"fixed_unlinked", "fixed_rate_linked"}
 
 
 def _display_regulatory_compliance(
@@ -484,22 +608,22 @@ def _display_regulatory_compliance(
     fixed_rate_percentage = sum(
         track["percentage"]
         for track in tracks
-        if track["track_type"] in ["fixed_unlinked", "fixed_rate_linked"]
+        if track["track_type"] in _FIXED_TRACK_TYPES
     )
-    prime_rate_percentage = sum(
+    variable_rate_percentage = sum(
         track["percentage"]
         for track in tracks
-        if track["track_type"] == "prime_rate"
+        if track["track_type"] not in _FIXED_TRACK_TYPES
     )
 
     fixed_rate_ratio = fixed_rate_percentage / total_percentage if total_percentage > 0 else 0
-    prime_rate_ratio = prime_rate_percentage / total_percentage if total_percentage > 0 else 0
+    variable_rate_ratio = variable_rate_percentage / total_percentage if total_percentage > 0 else 0
 
     fixed_compliant = fixed_rate_ratio >= 1 / 3
-    prime_compliant = prime_rate_ratio <= 2 / 3
+    variable_compliant = variable_rate_ratio <= 2 / 3
     percentage_compliant = abs(total_percentage - 100) <= 1
 
-    overall_compliant = fixed_compliant and prime_compliant and percentage_compliant
+    overall_compliant = fixed_compliant and variable_compliant and percentage_compliant
     status_class = "compliant" if overall_compliant else "non-compliant"
     status_text = "Compliant ✅" if overall_compliant else "Non-Compliant ⚠️"
 
@@ -512,32 +636,32 @@ def _display_regulatory_compliance(
     with col1:
         fixed_amount = loan_amount * fixed_rate_ratio if loan_amount > 0 else 0
         st.metric(
-            "Fixed Rate Tracks", 
-            f"{fixed_rate_ratio:.1%}", 
-            f"{currency_symbol}{fixed_amount:,.0f}"
+            "Fixed Rate Tracks",
+            f"{fixed_rate_ratio:.1%}",
+            f"{currency_symbol}{fixed_amount:,.0f}",
         )
         st.caption("Required: >=33.3%")
     with col2:
-        prime_amount = loan_amount * prime_rate_ratio if loan_amount > 0 else 0
+        variable_amount = loan_amount * variable_rate_ratio if loan_amount > 0 else 0
         st.metric(
-            "Prime Rate Track", 
-            f"{prime_rate_ratio:.1%}", 
-            f"{currency_symbol}{prime_amount:,.0f}"
+            "Variable Rate Tracks",
+            f"{variable_rate_ratio:.1%}",
+            f"{currency_symbol}{variable_amount:,.0f}",
         )
         st.caption("Limit: <=66.7%")
     with col3:
         total_amount = sum(track.get("amount", 0) for track in tracks)
         st.metric(
-            "Total Allocation", 
-            f"{total_percentage:.1f}%", 
-            f"{currency_symbol}{total_amount:,.0f}"
+            "Total Allocation",
+            f"{total_percentage:.1f}%",
+            f"{currency_symbol}{total_amount:,.0f}",
         )
         st.caption("Target: 100%")
 
     if not fixed_compliant:
         st.warning("⚠️ Fixed-rate tracks must be at least 33.3% of total mortgage")
-    if not prime_compliant:
-        st.warning("⚠️ Prime rate track cannot exceed 66.7% of total mortgage")
+    if not variable_compliant:
+        st.warning("⚠️ Variable rate tracks cannot exceed 66.7% of total mortgage")
     if not percentage_compliant:
         st.warning(f"⚠️ Track percentages total {total_percentage:.1f}% (should be 100%)")
 

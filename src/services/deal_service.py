@@ -11,6 +11,11 @@ from ..core.models import (
     FinancingType,
     SubLoan,
     IsraeliMortgageTrack,
+    RepaymentMethod,
+    GraceType,
+    GracePeriod,
+    PrepaymentOption,
+    Prepayment,
     Income,
     IncomeSource,
     OperatingExpenses,
@@ -158,14 +163,50 @@ class DealService:
             sub_loans = []
             for track in tracks_config:
                 track_amount = loan_amount * (track.get("percentage", 33) / 100)
+
+                # Resolve term: prefer loan_term_months, fall back to loan_term (years) * 12
+                term_months = track.get("loan_term_months")
+                if term_months is None:
+                    term_months = track.get("loan_term", 30) * 12
+
+                # Build optional grace period
+                grace_period = None
+                grace_months = track.get("grace_period")
+                grace_type_str = track.get("grace_type")
+                if grace_months and grace_months > 0 and grace_type_str:
+                    grace_period = GracePeriod(
+                        duration_months=int(grace_months),
+                        grace_type=GraceType(grace_type_str),
+                    )
+
+                # Build optional prepayments list
+                prepayments = []
+                pp_month = track.get("prepayment_month")
+                pp_amount = track.get("prepayment_amount")
+                if pp_month and pp_amount and pp_amount > 0:
+                    prepayments.append(
+                        Prepayment(
+                            month=int(pp_month),
+                            amount=float(pp_amount),
+                            option=PrepaymentOption(
+                                track.get("prepayment_type", "reduce_payment")
+                            ),
+                        )
+                    )
+
                 sub_loan = SubLoan(
                     name=track.get("name", "Track"),
                     track_type=IsraeliMortgageTrack(track.get("track_type", "fixed_unlinked")),
                     loan_amount=track_amount,
                     base_interest_rate=track.get("base_rate", 5.0),
-                    loan_term_years=track.get("loan_term", 30),
+                    loan_term_months=int(term_months),
                     bank_of_israel_rate=track.get("bank_of_israel_rate"),
                     expected_cpi=track.get("expected_cpi"),
+                    repayment_method=RepaymentMethod(
+                        track.get("repayment_method", "spitzer")
+                    ),
+                    grace_period=grace_period,
+                    prepayments=prepayments,
                 )
                 sub_loans.append(sub_loan)
 

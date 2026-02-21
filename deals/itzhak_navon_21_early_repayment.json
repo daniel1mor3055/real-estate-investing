@@ -1,0 +1,71 @@
+{
+  "id": "itzhak-navon-21-early-repay",
+  "name": "Itzhak Navon 21 – Early Repayment 100k at Month 12",
+  "property": {
+    "address": "Itzhak Navon 21",
+    "type": "single_family",
+    "purchase_price": 3756000,
+    "closing_costs": 100000,
+    "rehab_budget": 150000,
+    "units": 1,
+    "bedrooms": 2,
+    "bathrooms": 2,
+    "square_footage": 1080,
+    "year_built": 2023
+  },
+  "financing": {
+    "type": "conventional",
+    "cash_purchase": false,
+    "down_payment_percent": 42,
+    "israeli_mortgage_tracks": [
+      {
+        "name": "Kalatz",
+        "track_type": "fixed_unlinked",
+        "percentage": 43,
+        "base_rate": 4.2,
+        "loan_term": 26,
+        "loan_term_months": 312,
+        "repayment_method": "spitzer",
+        "prepayment_month": 12,
+        "prepayment_amount": 100000,
+        "prepayment_type": "reduce_payment"
+      },
+      {
+        "name": "Prime -0.7",
+        "track_type": "prime_rate",
+        "percentage": 57,
+        "base_rate": 2.6,
+        "loan_term": 30,
+        "loan_term_months": 360,
+        "repayment_method": "spitzer",
+        "bank_of_israel_rate": 1.1
+      }
+    ]
+  },
+  "income": {
+    "monthly_rent": 8500,
+    "vacancy_rate": 0,
+    "credit_loss": 0,
+    "annual_increase": 5.0,
+    "other_income": []
+  },
+  "expenses": {
+    "property_tax": 9600,
+    "insurance": 1000,
+    "hoa": 0,
+    "utilities": 0,
+    "maintenance_percent": 3,
+    "management_percent": 0,
+    "capex_percent": 0,
+    "annual_increase": 1.0
+  },
+  "market": {
+    "appreciation": 4.0,
+    "sales_expense": 0,
+    "inflation": 2.5
+  },
+  "analysis_defaults": {
+    "holding_period": 15
+  },
+  "notes": "Same as Itzhak Navon 21 but with ₪100,000 early repayment on the Kalatz track at month 12. Effect: reduce monthly payment (keep same term)."
+}
