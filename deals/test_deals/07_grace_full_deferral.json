@@ -1,0 +1,59 @@
+{
+  "id": "test-07-grace-full-deferral",
+  "name": "Test 07 – Grace Period: 6 Months Full Deferral",
+  "property": {
+    "address": "Test Property 07",
+    "type": "single_family",
+    "purchase_price": 1000000,
+    "closing_costs": 0,
+    "rehab_budget": 0,
+    "units": 1,
+    "bedrooms": 3,
+    "bathrooms": 2,
+    "square_footage": 100,
+    "year_built": 2020
+  },
+  "financing": {
+    "type": "conventional",
+    "cash_purchase": false,
+    "down_payment_percent": 40,
+    "israeli_mortgage_tracks": [
+      {
+        "name": "Fixed Unlinked – Spitzer with 6m Full Deferral Grace",
+        "track_type": "fixed_unlinked",
+        "percentage": 100,
+        "base_rate": 4.0,
+        "loan_term_months": 300,
+        "repayment_method": "spitzer",
+        "grace_period": 6,
+        "grace_type": "full_deferral"
+      }
+    ]
+  },
+  "income": { "monthly_rent": 1, "vacancy_rate": 0, "credit_loss": 0, "annual_increase": 0 },
+  "expenses": { "property_tax": 0, "insurance": 0, "hoa": 0, "utilities": 0, "maintenance_percent": 0, "management_percent": 0, "capex_percent": 0, "annual_increase": 0 },
+  "market": { "appreciation": 0, "sales_expense": 0, "inflation": 0 },
+  "what_to_verify": {
+    "loan_amount": 600000,
+    "grace_mechanics": "Months 1-6: no payment at all. Interest is ADDED to balance (capitalizes). Balance grows every month. At month 7, re-amortize inflated balance over 294 months.",
+    "checkpoints": {
+      "month_1": { "payment": 0.00, "interest": 2000.00, "principal": 0.00, "balance": 602000.00, "note": "2000 interest added to balance" },
+      "month_2": { "payment": 0.00, "interest": 2006.67, "principal": 0.00, "balance": 604006.67 },
+      "month_6": { "payment": 0.00, "balance": 612100.45, "note": "balance has grown by ~12,100 (capitalized interest)" },
+      "month_7": { "payment": 3269.37, "note": "JUMP: new Spitzer on inflated balance pmt(4%/12, 294, 612100.45)" },
+      "month_300": { "balance": 0.00 }
+    },
+    "compare_with_interest_only_grace": {
+      "interest_only_grace_balance_after": 600000.00,
+      "full_deferral_balance_after": 612100.45,
+      "extra_cost": 12100.45,
+      "reason": "Full deferral is more expensive – interest compounds on interest"
+    },
+    "invariants": [
+      "Payment = 0 during months 1-6",
+      "Balance INCREASES every month during deferral (interest capitalizes)",
+      "Month 7 balance is ~612,100 (600k * (1 + 4%/12)^6)",
+      "Payment from month 7: pmt(4%/12, 294, 612100) = 3269.37"
+    ]
+  }
+}

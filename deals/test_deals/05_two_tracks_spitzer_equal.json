@@ -1,0 +1,63 @@
+{
+  "id": "test-05-two-tracks",
+  "name": "Test 05 – Two Tracks: Spitzer + Equal Principal",
+  "property": {
+    "address": "Test Property 05",
+    "type": "single_family",
+    "purchase_price": 1000000,
+    "closing_costs": 0,
+    "rehab_budget": 0,
+    "units": 1,
+    "bedrooms": 3,
+    "bathrooms": 2,
+    "square_footage": 100,
+    "year_built": 2020
+  },
+  "financing": {
+    "type": "conventional",
+    "cash_purchase": false,
+    "down_payment_percent": 40,
+    "israeli_mortgage_tracks": [
+      {
+        "name": "Track A – Fixed Unlinked Spitzer",
+        "track_type": "fixed_unlinked",
+        "percentage": 66.67,
+        "base_rate": 4.0,
+        "loan_term_months": 240,
+        "repayment_method": "spitzer"
+      },
+      {
+        "name": "Track B – Fixed CPI-Linked Equal Principal",
+        "track_type": "fixed_rate_linked",
+        "percentage": 33.33,
+        "base_rate": 3.0,
+        "loan_term_months": 240,
+        "repayment_method": "equal_principal",
+        "expected_cpi": 2.0
+      }
+    ]
+  },
+  "income": { "monthly_rent": 1, "vacancy_rate": 0, "credit_loss": 0, "annual_increase": 0 },
+  "expenses": { "property_tax": 0, "insurance": 0, "hoa": 0, "utilities": 0, "maintenance_percent": 0, "management_percent": 0, "capex_percent": 0, "annual_increase": 0 },
+  "market": { "appreciation": 0, "sales_expense": 0, "inflation": 0 },
+  "what_to_verify": {
+    "loan_amount": 600000,
+    "track_a_amount": 400000,
+    "track_b_amount": 200000,
+    "checkpoints": {
+      "track_a_month_1": { "payment": 2423.92, "interest": 1333.33, "principal": 1090.59, "balance": 398909.41 },
+      "track_a_all_months": { "note": "payment is constant at 2423.92 (Spitzer)" },
+      "track_b_month_1": { "payment": 1333.33, "interest": 500.00, "principal": 833.33, "note": "principal = 200000/240" },
+      "track_b_month_2": { "payment": 1327.08, "interest": 497.92, "principal": 833.33, "note": "interest decreases, principal stays constant" },
+      "track_b_month_240": { "payment": 836.46, "interest": 3.13, "principal": 833.33 },
+      "combined_month_1": { "total_payment": 3757.25, "note": "sum of both tracks" }
+    },
+    "invariants": [
+      "Track A: constant payment every month",
+      "Track B: constant principal (200000/240 = 833.33), declining interest",
+      "Track B: total payment strictly decreases every month",
+      "Both tracks reach balance=0 at month 240",
+      "Combined total payment decreases over time (dominated by Track B)"
+    ]
+  }
+}

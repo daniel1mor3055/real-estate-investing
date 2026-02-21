@@ -1,0 +1,51 @@
+{
+  "id": "test-02-equal-principal",
+  "name": "Test 02 – Equal Principal (קרן שווה)",
+  "property": {
+    "address": "Test Property 02",
+    "type": "single_family",
+    "purchase_price": 1000000,
+    "closing_costs": 0,
+    "rehab_budget": 0,
+    "units": 1,
+    "bedrooms": 3,
+    "bathrooms": 2,
+    "square_footage": 100,
+    "year_built": 2020
+  },
+  "financing": {
+    "type": "conventional",
+    "cash_purchase": false,
+    "down_payment_percent": 40,
+    "israeli_mortgage_tracks": [
+      {
+        "name": "Fixed Unlinked – Equal Principal",
+        "track_type": "fixed_unlinked",
+        "percentage": 100,
+        "base_rate": 4.0,
+        "loan_term_months": 300,
+        "repayment_method": "equal_principal"
+      }
+    ]
+  },
+  "income": { "monthly_rent": 1, "vacancy_rate": 0, "credit_loss": 0, "annual_increase": 0 },
+  "expenses": { "property_tax": 0, "insurance": 0, "hoa": 0, "utilities": 0, "maintenance_percent": 0, "management_percent": 0, "capex_percent": 0, "annual_increase": 0 },
+  "market": { "appreciation": 0, "sales_expense": 0, "inflation": 0 },
+  "what_to_verify": {
+    "loan_amount": 600000,
+    "repayment_method": "Equal Principal (declining payment)",
+    "checkpoints": {
+      "month_1": { "payment": 4000.00, "interest": 2000.00, "principal": 2000.00, "balance": 598000.00 },
+      "month_2": { "payment": 3993.33, "interest": 1993.33, "principal": 2000.00, "balance": 596000.00 },
+      "month_300": { "payment": 2006.67, "interest": 6.67, "principal": 2000.00, "balance": 0.00 }
+    },
+    "total_interest": 301000.00,
+    "invariants": [
+      "Principal component is identical every month (600000 / 300 = 2000)",
+      "Interest component decreases by exactly 6.67 each month (2000 * 4%/12)",
+      "Total payment decreases every month",
+      "Month 1 payment (4000) is highest; month 300 (2006.67) is lowest",
+      "Sum of all principal payments = 600,000"
+    ]
+  }
+}

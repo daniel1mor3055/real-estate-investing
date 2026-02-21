@@ -14,6 +14,7 @@ from ..core.models import (
     RepaymentMethod,
     GraceType,
     GracePeriod,
+    RateChange,
     PrepaymentOption,
     Prepayment,
     Income,
@@ -179,6 +180,24 @@ class DealService:
                         grace_type=GraceType(grace_type_str),
                     )
 
+                # Build optional rate_changes list
+                # Accepts either a list: [{"month": 61, "delta": 1.5}, ...]
+                # or flat fields: rate_change_month + rate_change_delta
+                rate_changes = []
+                rc_list = track.get("rate_changes")
+                if rc_list:
+                    for rc in rc_list:
+                        rate_changes.append(
+                            RateChange(month=int(rc["month"]), delta=float(rc["delta"]))
+                        )
+                else:
+                    rc_month = track.get("rate_change_month")
+                    rc_delta = track.get("rate_change_delta")
+                    if rc_month and rc_delta is not None:
+                        rate_changes.append(
+                            RateChange(month=int(rc_month), delta=float(rc_delta))
+                        )
+
                 # Build optional prepayments list
                 prepayments = []
                 pp_month = track.get("prepayment_month")
@@ -206,6 +225,7 @@ class DealService:
                         track.get("repayment_method", "spitzer")
                     ),
                     grace_period=grace_period,
+                    rate_changes=rate_changes,
                     prepayments=prepayments,
                 )
                 sub_loans.append(sub_loan)

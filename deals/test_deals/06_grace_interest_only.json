@@ -1,0 +1,60 @@
+{
+  "id": "test-06-grace-interest-only",
+  "name": "Test 06 – Grace Period: 12 Months Interest Only",
+  "property": {
+    "address": "Test Property 06",
+    "type": "single_family",
+    "purchase_price": 1000000,
+    "closing_costs": 0,
+    "rehab_budget": 0,
+    "units": 1,
+    "bedrooms": 3,
+    "bathrooms": 2,
+    "square_footage": 100,
+    "year_built": 2020
+  },
+  "financing": {
+    "type": "conventional",
+    "cash_purchase": false,
+    "down_payment_percent": 40,
+    "israeli_mortgage_tracks": [
+      {
+        "name": "Fixed Unlinked – Spitzer with 12m Interest-Only Grace",
+        "track_type": "fixed_unlinked",
+        "percentage": 100,
+        "base_rate": 4.0,
+        "loan_term_months": 300,
+        "repayment_method": "spitzer",
+        "grace_period": 12,
+        "grace_type": "interest_only"
+      }
+    ]
+  },
+  "income": { "monthly_rent": 1, "vacancy_rate": 0, "credit_loss": 0, "annual_increase": 0 },
+  "expenses": { "property_tax": 0, "insurance": 0, "hoa": 0, "utilities": 0, "maintenance_percent": 0, "management_percent": 0, "capex_percent": 0, "annual_increase": 0 },
+  "market": { "appreciation": 0, "sales_expense": 0, "inflation": 0 },
+  "what_to_verify": {
+    "loan_amount": 600000,
+    "grace_mechanics": "Months 1-12: pay interest only. No principal reduction. Balance stays at 600,000. At month 13, re-amortize remaining balance (600,000) over 288 months.",
+    "checkpoints": {
+      "month_1":  { "payment": 2000.00, "interest": 2000.00, "principal": 0.00, "balance": 600000.00 },
+      "month_6":  { "payment": 2000.00, "interest": 2000.00, "principal": 0.00, "balance": 600000.00 },
+      "month_12": { "payment": 2000.00, "interest": 2000.00, "principal": 0.00, "balance": 600000.00 },
+      "month_13": { "payment": 3244.14, "interest": 2000.00, "principal": 1244.14, "balance": 598755.86, "note": "JUMP: re-amortized over 288 months (300 - 12)" },
+      "month_14": { "payment": 3244.14, "note": "constant Spitzer from here" },
+      "month_300": { "balance": 0.00 }
+    },
+    "compare_with_no_grace": {
+      "no_grace_payment": 3167.02,
+      "grace_payment": 3244.14,
+      "difference": 77.12,
+      "reason": "Grace period defers principal, so remaining term is shorter, payment is higher"
+    },
+    "invariants": [
+      "Principal = 0 during months 1-12",
+      "Balance = exactly 600,000 at end of month 12",
+      "Payment jumps at month 13 (higher than no-grace equivalent)",
+      "New Spitzer computed on: pmt(4%/12, 288, 600000)"
+    ]
+  }
+}

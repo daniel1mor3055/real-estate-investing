@@ -1,0 +1,69 @@
+{
+  "id": "test-09-prepayment-reduce-payment",
+  "name": "Test 09 – Early Repayment at Month 36 → Reduce Monthly Payment",
+  "property": {
+    "address": "Test Property 09",
+    "type": "single_family",
+    "purchase_price": 1000000,
+    "closing_costs": 0,
+    "rehab_budget": 0,
+    "units": 1,
+    "bedrooms": 3,
+    "bathrooms": 2,
+    "square_footage": 100,
+    "year_built": 2020
+  },
+  "financing": {
+    "type": "conventional",
+    "cash_purchase": false,
+    "down_payment_percent": 40,
+    "israeli_mortgage_tracks": [
+      {
+        "name": "Fixed Unlinked – Spitzer with early repayment",
+        "track_type": "fixed_unlinked",
+        "percentage": 100,
+        "base_rate": 4.0,
+        "loan_term_months": 300,
+        "repayment_method": "spitzer",
+        "prepayment_month": 36,
+        "prepayment_amount": 100000,
+        "prepayment_type": "reduce_payment"
+      }
+    ]
+  },
+  "income": { "monthly_rent": 1, "vacancy_rate": 0, "credit_loss": 0, "annual_increase": 0 },
+  "expenses": { "property_tax": 0, "insurance": 0, "hoa": 0, "utilities": 0, "maintenance_percent": 0, "management_percent": 0, "capex_percent": 0, "annual_increase": 0 },
+  "market": { "appreciation": 0, "sales_expense": 0, "inflation": 0 },
+  "what_to_verify": {
+    "loan_amount": 600000,
+    "prepayment_mechanics": "Months 1-35: normal Spitzer. Month 36: regular payment + 100,000 lump sum. From month 37: recalculate Spitzer on reduced balance for remaining 264 months (term unchanged).",
+    "checkpoints": {
+      "month_1":  { "payment": 3167.02, "interest": 2000.00, "principal": 1167.02, "balance": 598832.98 },
+      "month_35": { "payment": 3167.02 },
+      "month_36": {
+        "regular_payment": 3167.02,
+        "prepayment": 100000.00,
+        "total_payment": 103167.02,
+        "balance_before_prepay": 555441.31,
+        "balance_after_prepay": 455441.31,
+        "note": "balance drops by 100,000 after prepayment"
+      },
+      "month_37": { "payment": 2596.84, "note": "REDUCED: pmt(4%/12, 264, 455441.31)", "remaining_months": 264 },
+      "month_38": { "payment": 2596.84, "note": "constant from here, term unchanged" },
+      "month_300": { "balance": 0.00 }
+    },
+    "compare_with_no_prepayment": {
+      "no_prepay_total_payments": "3167.02 * 300 = 950,106",
+      "with_prepay_total_payments": "3167.02 * 35 + 103167.02 + 2596.84 * 264 = ~895,100",
+      "interest_saved": "~55,000"
+    },
+    "invariants": [
+      "Months 1-35: payment constant at 3167.02",
+      "Month 36: payment = 103,167.02 (regular + lump sum)",
+      "Balance at month 36 before prepay = 555,441.31",
+      "Balance after prepay = 455,441.31",
+      "Month 37: new payment = pmt(4%/12, 264, 455441.31) = 2596.84",
+      "Term is unchanged – loan still ends at month 300"
+    ]
+  }
+}

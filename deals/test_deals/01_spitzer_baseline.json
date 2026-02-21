@@ -1,0 +1,52 @@
+{
+  "id": "test-01-spitzer-baseline",
+  "name": "Test 01 – Spitzer Baseline",
+  "property": {
+    "address": "Test Property 01",
+    "type": "single_family",
+    "purchase_price": 1000000,
+    "closing_costs": 0,
+    "rehab_budget": 0,
+    "units": 1,
+    "bedrooms": 3,
+    "bathrooms": 2,
+    "square_footage": 100,
+    "year_built": 2020
+  },
+  "financing": {
+    "type": "conventional",
+    "cash_purchase": false,
+    "down_payment_percent": 40,
+    "israeli_mortgage_tracks": [
+      {
+        "name": "Fixed Unlinked – Spitzer",
+        "track_type": "fixed_unlinked",
+        "percentage": 100,
+        "base_rate": 4.0,
+        "loan_term_months": 300,
+        "repayment_method": "spitzer"
+      }
+    ]
+  },
+  "income": { "monthly_rent": 1, "vacancy_rate": 0, "credit_loss": 0, "annual_increase": 0 },
+  "expenses": { "property_tax": 0, "insurance": 0, "hoa": 0, "utilities": 0, "maintenance_percent": 0, "management_percent": 0, "capex_percent": 0, "annual_increase": 0 },
+  "market": { "appreciation": 0, "sales_expense": 0, "inflation": 0 },
+  "what_to_verify": {
+    "loan_amount": 600000,
+    "repayment_method": "Spitzer (constant annuity)",
+    "checkpoints": {
+      "month_1": { "payment": 3167.02, "interest": 2000.00, "principal": 1167.02, "balance": 598832.98 },
+      "month_2": { "payment": 3167.02, "note": "payment is constant every month" },
+      "month_150": { "note": "payment still 3167.02, but interest < principal (crossover)" },
+      "month_300": { "payment": 3167.02, "balance": 0.00 }
+    },
+    "total_interest": 350106.00,
+    "invariants": [
+      "Payment is identical every month (annuity property)",
+      "Interest component decreases monotonically",
+      "Principal component increases monotonically",
+      "Balance reaches exactly 0 at month 300",
+      "Sum of all principal payments = 600,000"
+    ]
+  }
+}

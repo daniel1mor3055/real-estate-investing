@@ -1,0 +1,68 @@
+{
+  "id": "test-08-rate-change",
+  "name": "Test 08 – Variable Track with Rate Change +1.5% at Month 61",
+  "property": {
+    "address": "Test Property 08",
+    "type": "single_family",
+    "purchase_price": 1000000,
+    "closing_costs": 0,
+    "rehab_budget": 0,
+    "units": 1,
+    "bedrooms": 3,
+    "bathrooms": 2,
+    "square_footage": 100,
+    "year_built": 2020
+  },
+  "financing": {
+    "type": "conventional",
+    "cash_purchase": false,
+    "down_payment_percent": 40,
+    "israeli_mortgage_tracks": [
+      {
+        "name": "Track A – Fixed Unlinked (regulatory minimum)",
+        "track_type": "fixed_unlinked",
+        "percentage": 34,
+        "base_rate": 4.5,
+        "loan_term_months": 300,
+        "repayment_method": "spitzer"
+      },
+      {
+        "name": "Track B – Variable Unlinked 5Y with rate reset",
+        "track_type": "variable_unlinked_5y",
+        "percentage": 66,
+        "base_rate": 3.0,
+        "loan_term_months": 300,
+        "repayment_method": "spitzer",
+        "rate_change_month": 61,
+        "rate_change_delta": 1.5
+      }
+    ]
+  },
+  "income": { "monthly_rent": 1, "vacancy_rate": 0, "credit_loss": 0, "annual_increase": 0 },
+  "expenses": { "property_tax": 0, "insurance": 0, "hoa": 0, "utilities": 0, "maintenance_percent": 0, "management_percent": 0, "capex_percent": 0, "annual_increase": 0 },
+  "market": { "appreciation": 0, "sales_expense": 0, "inflation": 0 },
+  "what_to_verify": {
+    "loan_amount": 600000,
+    "track_a_amount": 204000,
+    "track_b_amount": 396000,
+    "regulatory_compliance": "Track A fixed = 34% >= 33.3%, Track B variable = 66% <= 66.7%",
+    "track_a_fixed": {
+      "note": "Plain Spitzer at 4.5% – no rate changes, constant payment for 300 months"
+    },
+    "track_b_variable": {
+      "rate_change_mechanics": "Months 1-60: Spitzer at 3.0%. At month 61: rate jumps to 4.5%. New payment recalculated on remaining balance for 240 remaining months.",
+      "checkpoints": {
+        "month_1":  { "note": "Spitzer payment at 3.0% on 396,000" },
+        "month_60": { "note": "Last month at 3.0% – check remaining balance" },
+        "month_61": { "note": "JUMP: rate 3.0% → 4.5%, new payment on remaining balance over 240m" },
+        "month_300": { "balance": 0.00 }
+      }
+    },
+    "invariants": [
+      "Track A: payment is constant for all 300 months (fixed rate, no events)",
+      "Track B: payment is constant months 1-60, then jumps at month 61, constant again 61-300",
+      "Track B rate change is valid because it is a variable_unlinked_5y track",
+      "Combined table shows the aggregate impact of the rate reset"
+    ]
+  }
+}

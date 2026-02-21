@@ -1,0 +1,51 @@
+{
+  "id": "test-03-bullet",
+  "name": "Test 03 – Bullet (בלון)",
+  "property": {
+    "address": "Test Property 03",
+    "type": "single_family",
+    "purchase_price": 1000000,
+    "closing_costs": 0,
+    "rehab_budget": 0,
+    "units": 1,
+    "bedrooms": 3,
+    "bathrooms": 2,
+    "square_footage": 100,
+    "year_built": 2020
+  },
+  "financing": {
+    "type": "conventional",
+    "cash_purchase": false,
+    "down_payment_percent": 40,
+    "israeli_mortgage_tracks": [
+      {
+        "name": "Fixed Unlinked – Bullet",
+        "track_type": "fixed_unlinked",
+        "percentage": 100,
+        "base_rate": 4.0,
+        "loan_term_months": 60,
+        "repayment_method": "bullet"
+      }
+    ]
+  },
+  "income": { "monthly_rent": 1, "vacancy_rate": 0, "credit_loss": 0, "annual_increase": 0 },
+  "expenses": { "property_tax": 0, "insurance": 0, "hoa": 0, "utilities": 0, "maintenance_percent": 0, "management_percent": 0, "capex_percent": 0, "annual_increase": 0 },
+  "market": { "appreciation": 0, "sales_expense": 0, "inflation": 0 },
+  "what_to_verify": {
+    "loan_amount": 600000,
+    "repayment_method": "Bullet – interest only, full principal at maturity",
+    "checkpoints": {
+      "month_1": { "payment": 2000.00, "interest": 2000.00, "principal": 0.00, "balance": 600000.00 },
+      "month_30": { "payment": 2000.00, "interest": 2000.00, "principal": 0.00, "balance": 600000.00 },
+      "month_59": { "payment": 2000.00, "interest": 2000.00, "principal": 0.00, "balance": 600000.00 },
+      "month_60": { "payment": 602000.00, "interest": 2000.00, "principal": 600000.00, "balance": 0.00 }
+    },
+    "total_interest": 120000.00,
+    "invariants": [
+      "Balance stays at 600,000 from month 1 to month 59",
+      "Payment = 600000 * 4%/12 = 2000 every month except last",
+      "Month 60: entire principal (600000) repaid in one shot",
+      "Total interest = 600000 * 4%/12 * 60 = 120,000"
+    ]
+  }
+}

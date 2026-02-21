@@ -1,0 +1,60 @@
+{
+  "id": "test-04-cpi-linked-spitzer",
+  "name": "Test 04 – CPI-Linked Spitzer",
+  "property": {
+    "address": "Test Property 04",
+    "type": "single_family",
+    "purchase_price": 1000000,
+    "closing_costs": 0,
+    "rehab_budget": 0,
+    "units": 1,
+    "bedrooms": 3,
+    "bathrooms": 2,
+    "square_footage": 100,
+    "year_built": 2020
+  },
+  "financing": {
+    "type": "conventional",
+    "cash_purchase": false,
+    "down_payment_percent": 40,
+    "israeli_mortgage_tracks": [
+      {
+        "name": "Fixed CPI-Linked – Spitzer",
+        "track_type": "fixed_rate_linked",
+        "percentage": 100,
+        "base_rate": 3.0,
+        "loan_term_months": 300,
+        "repayment_method": "spitzer",
+        "expected_cpi": 2.0
+      }
+    ]
+  },
+  "income": { "monthly_rent": 1, "vacancy_rate": 0, "credit_loss": 0, "annual_increase": 0 },
+  "expenses": { "property_tax": 0, "insurance": 0, "hoa": 0, "utilities": 0, "maintenance_percent": 0, "management_percent": 0, "capex_percent": 0, "annual_increase": 0 },
+  "market": { "appreciation": 0, "sales_expense": 0, "inflation": 0 },
+  "what_to_verify": {
+    "loan_amount": 600000,
+    "repayment_method": "Spitzer with monthly CPI indexation",
+    "cpi_mechanics": "Balance is multiplied by (1 + 2%)^(1/12) BEFORE each payment. Spitzer payment is recalculated on the new balance every month.",
+    "checkpoints": {
+      "month_1": {
+        "balance_before_cpi": 600000.00,
+        "balance_after_cpi": 600990.95,
+        "note": "(1.02)^(1/12) - 1 = 0.001652 monthly inflation",
+        "interest": 1502.48,
+        "payment": 2849.97,
+        "principal": 1347.49,
+        "balance_after_payment": 599643.46
+      },
+      "month_12": { "note": "balance higher than 600,000 in nominal terms due to CPI" },
+      "month_300": { "balance": 0.00 }
+    },
+    "invariants": [
+      "Balance INCREASES each month before payment due to CPI inflation (2% annually)",
+      "Payment is recalculated every month on the new inflated balance",
+      "Payment is NOT constant (unlike non-CPI Spitzer)",
+      "Nominal total payments are higher than non-CPI equivalent",
+      "Sum of principal payments > 600,000 (because balance grew with CPI)"
+    ]
+  }
+}

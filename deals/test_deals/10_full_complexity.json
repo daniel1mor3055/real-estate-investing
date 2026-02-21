@@ -1,0 +1,118 @@
+{
+  "id": "test-10-full-complexity",
+  "name": "Test 10 – Full Complexity: 3 Tracks, Grace + Rate Change + Prepayment",
+  "property": {
+    "address": "Test Property 10",
+    "type": "single_family",
+    "purchase_price": 1000000,
+    "closing_costs": 0,
+    "rehab_budget": 0,
+    "units": 1,
+    "bedrooms": 3,
+    "bathrooms": 2,
+    "square_footage": 100,
+    "year_built": 2020
+  },
+  "financing": {
+    "type": "conventional",
+    "cash_purchase": false,
+    "down_payment_percent": 40,
+    "israeli_mortgage_tracks": [
+      {
+        "name": "Track A – Prime Spitzer with 2 rate changes",
+        "track_type": "prime_rate",
+        "percentage": 33.33,
+        "base_rate": 2.0,
+        "loan_term_months": 300,
+        "repayment_method": "spitzer",
+        "bank_of_israel_rate": 0.5,
+        "rate_change_month": 37,
+        "rate_change_delta": 1.0
+      },
+      {
+        "name": "Track B – CPI-Linked Equal Principal with 12m grace",
+        "track_type": "fixed_rate_linked",
+        "percentage": 33.33,
+        "base_rate": 2.5,
+        "loan_term_months": 300,
+        "repayment_method": "equal_principal",
+        "expected_cpi": 2.0,
+        "grace_period": 12,
+        "grace_type": "interest_only"
+      },
+      {
+        "name": "Track C – Fixed Unlinked Spitzer with early repayment",
+        "track_type": "fixed_unlinked",
+        "percentage": 33.34,
+        "base_rate": 4.5,
+        "loan_term_months": 240,
+        "repayment_method": "spitzer",
+        "prepayment_month": 60,
+        "prepayment_amount": 50000,
+        "prepayment_type": "reduce_payment"
+      }
+    ]
+  },
+  "income": { "monthly_rent": 1, "vacancy_rate": 0, "credit_loss": 0, "annual_increase": 0 },
+  "expenses": { "property_tax": 0, "insurance": 0, "hoa": 0, "utilities": 0, "maintenance_percent": 0, "management_percent": 0, "capex_percent": 0, "annual_increase": 0 },
+  "market": { "appreciation": 0, "sales_expense": 0, "inflation": 0 },
+  "what_to_verify": {
+    "loan_amount": 600000,
+    "track_amounts": {
+      "track_a_prime": 199980,
+      "track_b_cpi": 199980,
+      "track_c_fixed": 200040
+    },
+    "regulatory_compliance": {
+      "fixed_tracks": "B (CPI-Linked) + C (Fixed) = 66.67% >= 33.3%",
+      "variable_tracks": "A (Prime) = 33.33% <= 66.7%"
+    },
+    "track_a_prime": {
+      "effective_rate": "BoI 0.5% + 1.5% margin = 2.0%",
+      "month_1": { "payment": 847.71, "interest": 333.30, "principal": 514.41 },
+      "month_37": { "payment": 937.04, "note": "JUMP: rate changes +1.0% to 3.0%", "new_rate": "3.0%" },
+      "month_300": { "balance": 0.00 }
+    },
+    "track_b_cpi_equal": {
+      "month_1": { "payment": 416.67, "principal": 0.00, "note": "grace: interest only on 199980" },
+      "month_12": { "payment": 416.67, "principal": 0.00 },
+      "month_13": {
+        "note": "grace ends: balance ~203,256 (after 12m CPI), re-amortize as Equal Principal over 288m",
+        "balance_approx": 203256,
+        "payment_approx": 1133.33
+      },
+      "month_300": { "balance": 0.00 }
+    },
+    "track_c_fixed": {
+      "month_1": { "payment": 1265.30, "interest": 750.15, "principal": 515.15 },
+      "month_60": {
+        "total_payment_approx": 51265.30,
+        "note": "regular payment + 50,000 prepayment"
+      },
+      "month_61": {
+        "note": "REDUCED payment after prepay, same 240m term",
+        "payment_approx": 882.80
+      },
+      "month_240": { "balance": 0.00 }
+    },
+    "combined_month_1": {
+      "total_payment_approx": 2529.68,
+      "note": "A(847.71) + B(416.67 grace) + C(1265.30)"
+    },
+    "events_timeline": [
+      { "month": 13,  "event": "Track B grace ends – Equal Principal resumes on inflated balance" },
+      { "month": 37,  "event": "Track A rate change: 2.0% → 3.0%, payment jumps" },
+      { "month": 60,  "event": "Track C prepayment of 50,000 – payment reduced from month 61" },
+      { "month": 240, "event": "Track C fully paid off" },
+      { "month": 300, "event": "Tracks A and B fully paid off" }
+    ],
+    "invariants": [
+      "Track A payment is constant between events (months 1-36, 37-300)",
+      "Track B principal = 0 during months 1-12 (grace)",
+      "Track B balance at month 12 > 199,980 (CPI inflated)",
+      "Track B payment decreases after month 13 (Equal Principal with CPI recalc)",
+      "Track C: payment constant 1-59, jumps at month 60 (includes 50k), lower from month 61",
+      "Combined payment curve is non-monotonic due to multiple events"
+    ]
+  }
+}
