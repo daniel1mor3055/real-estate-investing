@@ -11,6 +11,7 @@ from rich.panel import Panel
 from rich import box
 
 from ...services.deal_service import DealService
+from ...services.analysis_service import AnalysisService
 from ...adapters.config_loader import ConfigLoader
 from ...utils.formatting import format_currency, format_percentage
 from ...utils.logging import setup_logging, get_logger
@@ -152,6 +153,52 @@ def amortization(loan_amount: float, rate: float, term: int):
         _display_amortization_summary(result.data)
 
 
+@cli.command(name="compare-periods")
+@click.option("--config", "-c", type=click.Path(exists=True), required=True, help="JSON config file")
+@click.option(
+    "--periods",
+    "-p",
+    default="5,10,15,20",
+    show_default=True,
+    help="Comma-separated holding periods in years (e.g. 5,10,15,20)",
+)
+@click.option("--discount-rate", "-d", default=0.10, show_default=True, help="Discount rate for NPV")
+def compare_periods(config: str, periods: str, discount_rate: float):
+    """Compare IRR, equity multiple, and other metrics across holding periods."""
+    logger.info(f"Comparing holding periods for config: {config}")
+
+    deal_service = DealService()
+    analysis_service = AnalysisService()
+
+    with open(config, "r") as f:
+        config_data = json.load(f)
+
+    deal = deal_service.create_deal_from_config(config_data)
+
+    try:
+        period_list = [int(p.strip()) for p in periods.split(",") if p.strip()]
+    except ValueError:
+        console.print("[red]Error: --periods must be a comma-separated list of integers (e.g. 5,10,15,20)[/red]")
+        return
+
+    console.print(
+        Panel.fit(
+            f"[bold blue]Holding Period Comparison: {deal.deal_name}[/bold blue]",
+            box=box.DOUBLE,
+        )
+    )
+
+    results = analysis_service.compare_holding_periods(
+        deal, periods=period_list, discount_rate=discount_rate
+    )
+
+    if not results:
+        console.print("[red]No results produced. Check that your deal config is valid.[/red]")
+        return
+
+    _display_holding_period_comparison(results, discount_rate)
+
+
 @cli.command()
 def list_configs():
     """List available configuration files."""
@@ -255,6 +302,46 @@ def _display_amortization_summary(schedule):
                 )
 
         console.print(table)
+
+
+def _display_holding_period_comparison(results: list, discount_rate: float):
+    """Display holding period comparison as a rich table."""
+    table = Table(
+        title=f"Holding Period Comparison (Discount Rate: {format_percentage(discount_rate)})",
+        box=box.ROUNDED,
+    )
+    table.add_column("Hold (yrs)", style="cyan", justify="center")
+    table.add_column("IRR", style="green", justify="right")
+    table.add_column("Equity Multiple", style="green", justify="right")
+    table.add_column("NPV", style="blue", justify="right")
+    table.add_column("CoC Return", style="yellow", justify="right")
+    table.add_column("Avg ROE", style="yellow", justify="right")
+    table.add_column("DSCR", style="magenta", justify="right")
+
+    best_irr_idx = max(
+        range(len(results)),
+        key=lambda i: results[i]["irr"] if results[i]["irr"] is not None else float("-inf"),
+    )
+
+    for i, r in enumerate(results):
+        irr_str = format_percentage(r["irr"]) if r["irr"] is not None else "N/A"
+        em_str = f"{r['equity_multiple']:.2f}x" if r["equity_multiple"] is not None else "N/A"
+        npv_str = format_currency(r["npv"]) if r["npv"] is not None else "N/A"
+        coc_str = format_percentage(r["coc_return"])
+        roe_str = format_percentage(r["average_roe"]) if r["average_roe"] is not None else "N/A"
+        dscr_str = f"{r['dscr']:.2f}"
+
+        period_label = f"{r['holding_period']} yr"
+        if i == best_irr_idx:
+            period_label = f"[bold]{period_label} ★[/bold]"
+            irr_str = f"[bold]{irr_str}[/bold]"
+
+        table.add_row(period_label, irr_str, em_str, npv_str, coc_str, roe_str, dscr_str)
+
+    console.print(table)
+    console.print(
+        f"[dim]★ = best IRR  |  NPV discounted at {format_percentage(discount_rate)}[/dim]"
+    )
 
 
 def _save_results(deal, metrics, output_path: str):

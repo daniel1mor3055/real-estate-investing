@@ -141,6 +141,47 @@ class AnalysisService:
         
         return low
 
+    def compare_holding_periods(
+        self,
+        deal: Deal,
+        periods: List[int],
+        discount_rate: float = 0.10,
+    ) -> List[Dict]:
+        """Compare key metrics across multiple holding periods.
+
+        Args:
+            deal: Base deal to analyze
+            periods: List of holding periods in years (e.g., [5, 10, 15, 20])
+            discount_rate: Discount rate for NPV calculation
+
+        Returns:
+            List of dicts, one per period, with IRR, equity multiple, NPV, CoC, and more.
+        """
+        results = []
+
+        for period in periods:
+            metrics_calc = MetricsCalculator(deal)
+            metrics_result = metrics_calc.calculate(
+                holding_period=period,
+                discount_rate=discount_rate,
+            )
+
+            if not metrics_result.success:
+                continue
+
+            m = metrics_result.data
+            results.append({
+                "holding_period": period,
+                "irr": m.irr.value if m.irr else None,
+                "equity_multiple": m.equity_multiple.value if m.equity_multiple else None,
+                "npv": m.npv.value if m.npv else None,
+                "coc_return": m.coc_return.value,
+                "dscr": m.dscr.value,
+                "average_roe": m.average_roe.value if m.average_roe else None,
+            })
+
+        return results
+
     def compare_financing_options(
         self,
         deal: Deal,
