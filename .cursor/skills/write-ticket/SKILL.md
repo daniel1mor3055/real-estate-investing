@@ -18,9 +18,10 @@ Generate engineering tickets optimized for Obsidian. Enforces brevity, binary ac
 ## Output Rules (Strict)
 
 **Mode 1: MCP Available**
-- Use Obsidian MCP to create the note directly in the vault
-- Target path: `/Users/danielmo/Desktop/Daniel/Real Estate Project/`
-- Filename: `YYYY-MM-DD-short-slug.md`
+- Use `create_ticket` MCP tool with `project: "Real Estate Project"` (exact Obsidian folder name)
+- The server resolves the path dynamically — no hardcoded paths needed
+- If unsure of the exact folder name, call `list_projects` first to see available projects
+- Filename is auto-generated as `TICKET-{timestamp}-{slug}.md`
 - Confirm creation with user
 
 **Mode 2: No MCP**

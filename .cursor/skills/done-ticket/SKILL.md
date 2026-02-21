@@ -18,11 +18,11 @@ Marks engineering tickets as complete and archives them to the done directory. U
 ## Output Rules (Strict)
 
 **Mode 1: MCP Available**
-- Use `read_ticket` to read the current ticket from `/Users/danielmo/Desktop/Daniel/Real Estate Project/`
-- Use `update_ticket` to set status to `done` and add completion notes
-- Use `move_ticket` to move ticket to `/Users/danielmo/Desktop/Daniel/Real Estate Project/done/`
-- Preserve original filename
-- Confirm completion with user
+- Pass `project: "Real Estate Project"` (exact Obsidian folder name) to all tool calls
+- The server resolves the path dynamically — no hardcoded paths needed
+- If unsure of the exact folder name, call `list_projects` first
+- Use `read_ticket`, `update_ticket`, and `move_ticket` in sequence
+- Preserve original filename; confirm completion with user
 
 **Mode 2: No MCP**
 - Output instructions for manual completion
