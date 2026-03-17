@@ -327,6 +327,7 @@ def _get_israeli_mortgage_inputs() -> Dict[str, Any]:
 _TRACK_TYPE_DISPLAY = {
     "fixed_rate_linked": "Fixed (linked to index)",
     "fixed_unlinked": "Fixed (not linked to index)",
+    "prime_rate": "Prime (פריים)",
     "variable_linked_5y": "Variable (linked) every 5 years",
     "variable_unlinked_5y": "Variable (not linked) every 5 years",
     "variable_linked_1y": "Variable (linked) every year",
@@ -422,6 +423,8 @@ def _get_single_track_inputs(
                 if track_type == "fixed_unlinked"
                 else 3.8
                 if track_type in _CPI_LINKED_TYPES
+                else 5.9
+                if track_type == "prime_rate"
                 else 4.0,
             )
 
@@ -467,7 +470,6 @@ def _get_single_track_inputs(
             )
 
         # --- Row 3: CPI (for linked tracks) ---
-        bank_of_israel_rate = None
         expected_cpi = None
 
         if track_type in _CPI_LINKED_TYPES:
@@ -583,7 +585,6 @@ def _get_single_track_inputs(
         "base_rate": base_rate,
         "loan_term_months": term_months,
         "repayment_method": repayment_method,
-        "bank_of_israel_rate": bank_of_israel_rate,
         "expected_cpi": expected_cpi,
         "grace_period": grace_period_months,
         "grace_type": grace_type,

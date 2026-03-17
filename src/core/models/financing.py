@@ -22,7 +22,7 @@ class IsraeliMortgageTrack(str, Enum):
     """Israeli mortgage tracks (מסלולים) as per Bank of Israel regulations."""
 
     FIXED_UNLINKED = "fixed_unlinked"  # ריבית קבועה לא צמודה - קל"צ
-    PRIME_RATE = "prime_rate"  # מסלול פריים (backward compat)
+    PRIME_RATE = "prime_rate"  # מסלול פריים — variable, not linked
     FIXED_RATE_LINKED = "fixed_rate_linked"  # ריבית קבועה צמודה
     VARIABLE_LINKED_5Y = "variable_linked_5y"  # משתנה צמודה כל 5 שנים
     VARIABLE_UNLINKED_5Y = "variable_unlinked_5y"  # משתנה לא צמודה כל 5 שנים
@@ -63,11 +63,6 @@ class IsraeliMortgageTrack(str, Enum):
             IsraeliMortgageTrack.VARIABLE_LINKED_2Y,
             IsraeliMortgageTrack.VARIABLE_LINKED_10Y,
         ]
-
-    @property
-    def is_prime_based(self) -> bool:
-        """Check if this track is based on Bank of Israel prime rate."""
-        return self == IsraeliMortgageTrack.PRIME_RATE
 
     @property
     def is_variable_rate(self) -> bool:
@@ -164,12 +159,6 @@ class SubLoan(BaseModel):
     )
 
     # Israeli-specific parameters
-    bank_of_israel_rate: Optional[float] = Field(
-        None,
-        ge=0,
-        le=20,
-        description="Bank of Israel official rate for prime calculations",
-    )
     expected_cpi: Optional[float] = Field(
         None, ge=-5, le=20, description="Expected annual CPI for linked tracks"
     )
@@ -205,22 +194,9 @@ class SubLoan(BaseModel):
     @model_validator(mode="after")
     def validate_subloan_parameters(self):
         """Validate track-specific parameters and event boundaries."""
-        # Prime rate track must have Bank of Israel rate
-        if (
-            self.track_type == IsraeliMortgageTrack.PRIME_RATE
-            and self.bank_of_israel_rate is None
-        ):
-            raise ValueError(
-                "Prime rate track must specify bank_of_israel_rate parameter"
-            )
-
         # CPI-linked tracks must have expected CPI
         if self.track_type.is_cpi_linked and self.expected_cpi is None:
             raise ValueError("CPI-linked tracks must specify expected_cpi parameter")
-
-        # Non-prime tracks shouldn't have BoI rate
-        if not self.track_type.is_prime_based and self.bank_of_israel_rate is not None:
-            raise ValueError("Non-prime tracks should not specify bank_of_israel_rate")
 
         # Non-CPI-linked tracks shouldn't have CPI
         if not self.track_type.is_cpi_linked and self.expected_cpi is not None:
@@ -248,14 +224,7 @@ class SubLoan(BaseModel):
 
     def calculate_effective_rate(self) -> float:
         """Calculate the effective interest rate for this Israeli mortgage track."""
-        if self.track_type == IsraeliMortgageTrack.PRIME_RATE:
-            if self.bank_of_israel_rate is not None:
-                effective_rate = self.bank_of_israel_rate + 1.5
-            else:
-                effective_rate = self.base_interest_rate
-        else:
-            effective_rate = self.base_interest_rate
-
+        effective_rate = self.base_interest_rate
         self.effective_interest_rate = effective_rate
         return effective_rate
 
@@ -325,7 +294,7 @@ class SubLoan(BaseModel):
         """Get a description of this mortgage track."""
         descriptions = {
             IsraeliMortgageTrack.FIXED_UNLINKED: "Fixed rate, not linked to index. Most predictable payments.",
-            IsraeliMortgageTrack.PRIME_RATE: "Variable rate based on Bank of Israel prime (BoI rate + 1.5%).",
+            IsraeliMortgageTrack.PRIME_RATE: "Variable rate (not linked). Rate changes immediately with prime.",
             IsraeliMortgageTrack.FIXED_RATE_LINKED: "Fixed rate, principal linked to CPI index.",
             IsraeliMortgageTrack.VARIABLE_LINKED_5Y: "Rate resets every 5 years, principal linked to CPI.",
             IsraeliMortgageTrack.VARIABLE_UNLINKED_5Y: "Rate resets every 5 years, not linked to index.",

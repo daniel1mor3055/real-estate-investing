@@ -219,7 +219,6 @@ class DealService:
                     loan_amount=track_amount,
                     base_interest_rate=track.get("base_rate", 5.0),
                     loan_term_months=int(term_months),
-                    bank_of_israel_rate=track.get("bank_of_israel_rate"),
                     expected_cpi=track.get("expected_cpi"),
                     repayment_method=RepaymentMethod(
                         track.get("repayment_method", "spitzer")

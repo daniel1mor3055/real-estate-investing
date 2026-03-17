@@ -25,7 +25,6 @@
         "base_rate": 2.0,
         "loan_term_months": 300,
         "repayment_method": "spitzer",
-        "bank_of_israel_rate": 0.5,
         "rate_change_month": 37,
         "rate_change_delta": 1.0
       },
@@ -68,7 +67,7 @@
       "variable_tracks": "A (Prime) = 33.33% <= 66.7%"
     },
     "track_a_prime": {
-      "effective_rate": "BoI 0.5% + 1.5% margin = 2.0%",
+      "effective_rate": "2.0% (user-provided prime rate)",
       "month_1": { "payment": 847.71, "interest": 333.30, "principal": 514.41 },
       "month_37": { "payment": 937.04, "note": "JUMP: rate changes +1.0% to 3.0%", "new_rate": "3.0%" },
       "month_300": { "balance": 0.00 }
